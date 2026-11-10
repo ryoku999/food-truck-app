@@ -1,8 +1,18 @@
 @import "tailwindcss";
 @plugin "daisyui" {
   themes:
-    light --default,
-    dark --prefersdark,
-    sunset,
-    cupcake;
+    sunset --default,
+    light,
+    dark,
+    cupcake,
+    nord,
+    night,
+    valentine,
+    abyss,
+    emerald,
+    retro,
+    garden,
+    forest,
+    lemonade,
+    caramellatte;
 }

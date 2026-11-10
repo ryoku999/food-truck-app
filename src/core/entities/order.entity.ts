@@ -33,7 +33,7 @@ export interface Order {
   sentAt: string | null;
 }
 export type OrderPage = { items: Order[]; meta: { page: number; pageSize: number; pageCount: number; total: number } };
-export type OrderFilters = { createdById?: string; page: number; pageSize: number; status?: OrderStatus; search?: string };
+export type OrderFilters = { createdById?: string; page: number; pageSize: number; status?: OrderStatus; search?: string; view?: "active" | "history"; from?: string; to?: string };
 export type CreateOrder = { type: OrderType; tableIds: string[]; customerName?: string; customerPhone?: string; notes?: string };
 export type OrderDetails = { customerName: string | null; customerPhone: string | null; notes: string | null };
 export type AddOrderItem = { productId: string; productVariantId?: string; quantity: number; notes?: string; modifierOptionIds: string[]; comboSelections: { comboGroupId: string; comboGroupItemIds: string[] }[] };

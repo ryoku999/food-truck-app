@@ -2,6 +2,7 @@ import { useLogout } from "@/infrastructure/hooks/use-auth";
 import { useAuthStore } from "@/infrastructure/storage/auth-storage";
 import { NavLink, Outlet } from "react-router-dom";
 import { roleBasedRedirection } from "@/shared/utils/role-based-redirection";
+import ThemeSelector from "../components/ThemeSelector";
 
 export default function RoleLayout({ title }: { title: string }) {
   const user = useAuthStore((state) => state.user);
@@ -19,9 +20,12 @@ export default function RoleLayout({ title }: { title: string }) {
             <p className="font-bold">Food Truck</p>
             <p className="text-sm">{title} · {user?.firstName || user?.username}</p>
           </div>
-          <button type="button" className="btn btn-outline min-h-11" disabled={logout.isPending} onClick={() => logout.mutate()}>
-            {logout.isPending ? "Saliendo…" : "Cerrar sesión"}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <ThemeSelector />
+            <button type="button" className="btn btn-outline min-h-11" disabled={logout.isPending} onClick={() => logout.mutate()}>
+              {logout.isPending ? "Saliendo…" : "Cerrar sesión"}
+            </button>
+          </div>
           {logout.isError && <p role="alert" className="alert alert-error basis-full">No se pudo cerrar sesión. Vuelve a intentar.</p>}
         </div>
       </header>
