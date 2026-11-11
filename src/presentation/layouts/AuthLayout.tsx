@@ -7,7 +7,13 @@ const AuthLayout = () => {
       <section className="card w-full max-w-md border border-base-300 bg-base-100 shadow-xl">
         <div className="card-body gap-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <img src="/logo.png" alt="Food Truck" width={56} height={56} className="size-14 object-contain" />
+            <img
+              src="/logo.png"
+              alt="Food Truck"
+              width={56}
+              height={56}
+              className="size-14 object-contain"
+            />
             <ThemeSelector />
           </div>
           <Outlet />

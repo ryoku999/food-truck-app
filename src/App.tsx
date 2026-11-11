@@ -8,7 +8,9 @@ import { SessionBootstrap } from "./presentation/guards/SessionBootstrap";
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <SessionBootstrap><RouterProvider router={routes} /></SessionBootstrap>
+      <SessionBootstrap>
+        <RouterProvider router={routes} />
+      </SessionBootstrap>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );

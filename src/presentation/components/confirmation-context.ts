@@ -11,4 +11,6 @@ export interface ConfirmationService {
   cancel: (owner: string) => void;
 }
 
-export const ConfirmationContext = createContext<ConfirmationService | null>(null);
+export const ConfirmationContext = createContext<ConfirmationService | null>(
+  null,
+);

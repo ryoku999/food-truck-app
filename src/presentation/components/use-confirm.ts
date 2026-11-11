@@ -1,5 +1,8 @@
 import { useCallback, useContext, useEffect, useId } from "react";
-import { ConfirmationContext, type ConfirmationOptions } from "./confirmation-context";
+import {
+  ConfirmationContext,
+  type ConfirmationOptions,
+} from "./confirmation-context";
 
 export function useConfirm() {
   const service = useContext(ConfirmationContext);
@@ -8,7 +11,10 @@ export function useConfirm() {
   useEffect(() => () => service.cancel(owner), [service, owner]);
   return useCallback(
     (options: string | ConfirmationOptions) =>
-      service.ask(owner, typeof options === "string" ? { message: options } : options),
+      service.ask(
+        owner,
+        typeof options === "string" ? { message: options } : options,
+      ),
     [service, owner],
   );
 }

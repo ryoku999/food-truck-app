@@ -6,30 +6,38 @@ import { ordersService } from "../services/orders.service";
 import { useAuthStore } from "../storage/auth-storage";
 
 const orderKey = (id: string) => ["orders", "detail", id] as const;
-export const useOrder = (id: string) => useQuery({
-  queryKey: orderKey(id), queryFn: ({ signal }) => ordersService.get(id, signal),
-  staleTime: 0, refetchInterval: 15_000, retry: false,
-});
+export const useOrder = (id: string) =>
+  useQuery({
+    queryKey: orderKey(id),
+    queryFn: ({ signal }) => ordersService.get(id, signal),
+    staleTime: 0,
+    refetchInterval: 15_000,
+    retry: false,
+  });
 export function useOrders(params: OrderFilters, enabled = true) {
-  const userId = useAuthStore(store => store.user?.id);
+  const userId = useAuthStore((store) => store.user?.id);
   return useQuery({
     queryKey: ["orders", "list", userId, params],
     queryFn: ({ signal }) => ordersService.list(params, signal),
     enabled: enabled && Boolean(userId),
-    staleTime: 0, retry: false,
+    staleTime: 0,
+    retry: false,
   });
 }
 export function useOrderAction() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (action: (repository: OrdersRepository) => Promise<Order>) => action(ordersService),
+    mutationFn: (action: (repository: OrdersRepository) => Promise<Order>) =>
+      action(ordersService),
     retry: false,
-    onSuccess: async order => {
+    onSuccess: async (order) => {
       await client.cancelQueries({ queryKey: orderKey(order.id) });
       client.setQueryData(orderKey(order.id), order);
       void client.invalidateQueries({ queryKey: ["orders", "list"] });
       void client.invalidateQueries({ queryKey: ["local", "map"] });
-      void client.invalidateQueries({ queryKey: ["cashier", "payments", order.id] });
+      void client.invalidateQueries({
+        queryKey: ["cashier", "payments", order.id],
+      });
     },
   });
 }
@@ -37,14 +45,28 @@ export function useOrderAction() {
 export function useCancelOrder() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, reason, itemId, quantity }: { id: string; reason: string; itemId?: string; quantity?: number }) => itemId ? ordersService.cancelItem(id, itemId, reason, quantity) : ordersService.cancel(id, reason),
+    mutationFn: ({
+      id,
+      reason,
+      itemId,
+      quantity,
+    }: {
+      id: string;
+      reason: string;
+      itemId?: string;
+      quantity?: number;
+    }) =>
+      itemId
+        ? ordersService.cancelItem(id, itemId, reason, quantity)
+        : ordersService.cancel(id, reason),
     retry: false,
-    onSuccess: order => client.setQueryData(orderKey(order.id), order),
-    onSettled: () => Promise.all([
-      client.invalidateQueries({ queryKey: ["orders"] }),
-      client.invalidateQueries({ queryKey: ["cashier"] }),
-      client.invalidateQueries({ queryKey: ["local", "map"] }),
-      client.invalidateQueries({ queryKey: ["production"] }),
-    ]),
+    onSuccess: (order) => client.setQueryData(orderKey(order.id), order),
+    onSettled: () =>
+      Promise.all([
+        client.invalidateQueries({ queryKey: ["orders"] }),
+        client.invalidateQueries({ queryKey: ["cashier"] }),
+        client.invalidateQueries({ queryKey: ["local", "map"] }),
+        client.invalidateQueries({ queryKey: ["production"] }),
+      ]),
   });
 }

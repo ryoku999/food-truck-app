@@ -1,4 +1,15 @@
-import type { Business, BusinessSettings, FileType, FileUrl, ManagedUser, NewUser, StoredFile, UserFields, UserFilters, UserPage } from "../entities/management.entity";
+import type {
+  Business,
+  BusinessSettings,
+  FileType,
+  FileUrl,
+  ManagedUser,
+  NewUser,
+  StoredFile,
+  UserFields,
+  UserFilters,
+  UserPage,
+} from "../entities/management.entity";
 
 export interface BusinessRepository {
   get(signal?: AbortSignal): Promise<Business>;

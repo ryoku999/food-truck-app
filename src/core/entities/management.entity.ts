@@ -12,7 +12,11 @@ export type BusinessSettings = {
 };
 export type Business = BusinessSettings & {
   id: string;
-  logo: (Pick<StoredFile, "id" | "originalName" | "mimeType" | "size"> & { url: string }) | null;
+  logo:
+    | (Pick<StoredFile, "id" | "originalName" | "mimeType" | "size"> & {
+        url: string;
+      })
+    | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -27,7 +31,19 @@ export interface StoredFile {
 }
 export type FileUrl = { url: string; expiresInSeconds: number };
 export type ManagedUser = LoginRes & { createdAt: string; updatedAt: string };
-export type UserFields = Pick<LoginRes, "username" | "dni" | "lastName" | "userRole"> & { firstName: string };
+export type UserFields = Pick<
+  LoginRes,
+  "username" | "dni" | "lastName" | "userRole"
+> & { firstName: string };
 export type NewUser = UserFields & { password: string };
-export type UserFilters = { page: number; pageSize: number; search?: string; userRole?: LoginRes["userRole"]; status?: LoginRes["status"] };
-export type UserPage = { items: ManagedUser[]; meta: { page: number; pageSize: number; total: number; pageCount: number } };
+export type UserFilters = {
+  page: number;
+  pageSize: number;
+  search?: string;
+  userRole?: LoginRes["userRole"];
+  status?: LoginRes["status"];
+};
+export type UserPage = {
+  items: ManagedUser[];
+  meta: { page: number; pageSize: number; total: number; pageCount: number };
+};

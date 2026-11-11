@@ -7,11 +7,7 @@ import {
 import { endSession } from "./auth-session";
 
 const baseURL = import.meta.env.VITE_API_URL || "/api";
-const PUBLIC_AUTH_ROUTES = [
-  "/auth/login",
-  "/auth/refresh",
-  "/auth/logout",
-];
+const PUBLIC_AUTH_ROUTES = ["/auth/login", "/auth/refresh", "/auth/logout"];
 
 const http: AxiosInstance = create({
   baseURL,
@@ -71,11 +67,7 @@ http.interceptors.response.use(
   async (error: AxiosError) => {
     const req = error.config as RetryableRequestConfig | undefined;
 
-    if (
-      error.response?.status !== 401 ||
-      !req ||
-      isPublicAuthRoute(req.url)
-    ) {
+    if (error.response?.status !== 401 || !req || isPublicAuthRoute(req.url)) {
       return Promise.reject(error);
     }
 
@@ -98,7 +90,10 @@ http.interceptors.response.use(
       await refreshAccessToken();
       return http(req);
     } catch (refreshError) {
-      if (refreshError instanceof AxiosError && refreshError.response?.status === 401) {
+      if (
+        refreshError instanceof AxiosError &&
+        refreshError.response?.status === 401
+      ) {
         endSession();
       }
       return Promise.reject(refreshError);

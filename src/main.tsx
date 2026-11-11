@@ -6,6 +6,8 @@ import { ConfirmProvider } from "./presentation/components/ConfirmProvider";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ConfirmProvider><App /></ConfirmProvider>
+    <ConfirmProvider>
+      <App />
+    </ConfirmProvider>
   </StrictMode>,
 );

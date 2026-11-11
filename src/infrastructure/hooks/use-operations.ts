@@ -2,14 +2,18 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../storage/auth-storage";
 import { authService } from "../services/auth.service";
-import { createOperationsSocket, operationEvents, type OperationsState } from "../services/operations.service";
+import {
+  createOperationsSocket,
+  operationEvents,
+  type OperationsState,
+} from "../services/operations.service";
 
 export const OperationsContext = createContext<OperationsState>("offline");
 export const useOperationsState = () => useContext(OperationsContext);
 
 export function useOperationsConnection(): OperationsState {
-  const userId = useAuthStore(state => state.user?.id);
-  const role = useAuthStore(state => state.user?.userRole);
+  const userId = useAuthStore((state) => state.user?.id);
+  const role = useAuthStore((state) => state.user?.userRole);
   const client = useQueryClient();
   const [state, setState] = useState<OperationsState>("connecting");
 
@@ -25,7 +29,8 @@ export function useOperationsConnection(): OperationsState {
       if (timer !== undefined) return;
       timer = setTimeout(() => {
         timer = undefined;
-        for (const queryKey of queued.values()) void client.invalidateQueries({ queryKey });
+        for (const queryKey of queued.values())
+          void client.invalidateQueries({ queryKey });
         queued.clear();
       }, 150);
     };
@@ -36,16 +41,23 @@ export function useOperationsConnection(): OperationsState {
       queue("print-jobs");
       queue("cashier");
     };
-    socket.on("operations.ready", () => { setState("online"); all(); });
+    socket.on("operations.ready", () => {
+      setState("online");
+      all();
+    });
     socket.on("connect_error", () => setState("offline"));
-    socket.on("disconnect", reason => {
+    socket.on("disconnect", (reason) => {
       setState("offline");
-      if (reason !== "io server disconnect" || controller.signal.aborted) return;
+      if (reason !== "io server disconnect" || controller.signal.aborted)
+        return;
       // Server disconnects do not auto-reconnect. Validate/refresh via REST first.
       recovery = setTimeout(() => {
-        void authService.me(controller.signal).then(() => {
-          if (!controller.signal.aborted) socket.connect();
-        }).catch(() => undefined);
+        void authService
+          .me(controller.signal)
+          .then(() => {
+            if (!controller.signal.aborted) socket.connect();
+          })
+          .catch(() => undefined);
       }, 15_000);
     });
     for (const event of operationEvents) {
@@ -57,7 +69,8 @@ export function useOperationsConnection(): OperationsState {
         else {
           queue("orders");
           queue("local", "map");
-          if (event === "order.status.changed" || event === "order.sent") queue("cashier", "payments");
+          if (event === "order.status.changed" || event === "order.sent")
+            queue("cashier", "payments");
           if (event === "order-item.status.changed") queue("production");
         }
       });

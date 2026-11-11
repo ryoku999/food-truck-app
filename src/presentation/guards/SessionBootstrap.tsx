@@ -18,7 +18,11 @@ export function SessionBootstrap({ children }: PropsWithChildren) {
       },
       (error: unknown) => {
         if (controller.signal.aborted) return;
-        setState(isAxiosError(error) && error.response?.status === 401 ? "ready" : "error");
+        setState(
+          isAxiosError(error) && error.response?.status === 401
+            ? "ready"
+            : "error",
+        );
       },
     );
     return () => controller.abort();
@@ -28,13 +32,20 @@ export function SessionBootstrap({ children }: PropsWithChildren) {
 
   return (
     <main className="grid min-h-dvh place-items-center bg-base-200 p-4 text-base-content">
-      {state === "loading" ? <p role="status">Verificando sesión…</p> : (
+      {state === "loading" ? (
+        <p role="status">Verificando sesión…</p>
+      ) : (
         <div className="space-y-4 text-center">
-          <p role="alert">No se pudo conectar con la API.</p>
-          <button className="btn btn-primary" onClick={() => {
-            setState("loading");
-            setAttempt((value) => value + 1);
-          }}>Reintentar</button>
+          <p role="alert">No se pudo conectar con el servidor.</p>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              setState("loading");
+              setAttempt((value) => value + 1);
+            }}
+          >
+            Reintentar
+          </button>
         </div>
       )}
     </main>
