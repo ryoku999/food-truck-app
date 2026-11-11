@@ -53,7 +53,15 @@ const schema = z.object({
 const createSchema = schema.extend(passwordSchema.shape);
 type UserFormValues = z.infer<typeof schema> & { password?: string };
 
-function UserForm({ user, close }: { user?: ManagedUser; close: () => void }) {
+function UserForm({
+  user,
+  close,
+  onSuccess,
+}: {
+  user?: ManagedUser;
+  close: () => void;
+  onSuccess: () => void;
+}) {
   const { create, update } = useUserActions();
   const mutation = user ? update : create;
   const {
@@ -83,14 +91,14 @@ function UserForm({ user, close }: { user?: ManagedUser; close: () => void }) {
       noValidate
       onSubmit={handleSubmit(({ password, ...fields }) => {
         const input = { ...fields, lastName: fields.lastName || null };
-        if (user) update.mutate({ id: user.id, input }, { onSuccess: close });
+        if (user) update.mutate({ id: user.id, input }, { onSuccess });
         else if (password)
-          create.mutate({ ...input, password }, { onSuccess: close });
+          create.mutate({ ...input, password }, { onSuccess });
       })}
     >
       <div className="card-body">
         <h2 className="card-title">
-          {user ? `Editar @${user.username}` : "Nuevo usuario"}
+          {user ? `Editar ${user.username}` : "Nuevo usuario"}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           {fields.map(([key, label]) => (
@@ -188,7 +196,7 @@ function PasswordForm({
       )}
     >
       <div className="card-body">
-        <h2 className="card-title">Cambiar contraseña de @{user.username}</h2>
+        <h2 className="card-title">Cambiar contraseña de {user.username}</h2>
         <label className="grid gap-1">
           Nueva contraseña
           <input
@@ -269,7 +277,7 @@ export default function UsersPage() {
         </p>
       )}
       {selection?.mode === "create" && admin && (
-        <UserForm close={() => done("Usuario creado.")} />
+        <UserForm close={close} onSuccess={() => done("Usuario creado.")} />
       )}
       {selection &&
         "id" in selection &&
@@ -283,21 +291,44 @@ export default function UsersPage() {
             </button>
           </div>
         ) : selection.mode === "edit" && admin ? (
-          <UserForm key={detail.data.id} user={detail.data} close={close} />
+          <UserForm
+            key={detail.data.id}
+            user={detail.data}
+            close={close}
+            onSuccess={close}
+          />
         ) : selection.mode === "password" && admin ? (
           <PasswordForm key={detail.data.id} user={detail.data} close={close} />
         ) : (
           <section className="card border border-base-300 bg-base-100">
             <div className="card-body">
-              <h2 className="card-title">@{detail.data.username}</h2>
-              <p>
-                {detail.data.firstName} {detail.data.lastName} · DNI{" "}
-                {detail.data.dni}
-              </p>
-              <p>
-                {roleLabels[detail.data.userRole]} ·{" "}
-                {detail.data.status === "ACTIVE" ? "Activo" : "Inactivo"}
-              </p>
+              <h2 className="card-title">{detail.data.username}</h2>
+              <dl className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <dt className="text-sm opacity-70">Nombre completo</dt>
+                  <dd className="font-medium">
+                    {[detail.data.firstName, detail.data.lastName]
+                      .filter(Boolean)
+                      .join(" ") || "Sin nombre"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm opacity-70">DNI</dt>
+                  <dd className="font-medium">{detail.data.dni}</dd>
+                </div>
+                <div>
+                  <dt className="text-sm opacity-70">Rol</dt>
+                  <dd className="font-medium">
+                    {roleLabels[detail.data.userRole]}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm opacity-70">Estado</dt>
+                  <dd className="font-medium">
+                    {detail.data.status === "ACTIVE" ? "Activo" : "Inactivo"}
+                  </dd>
+                </div>
+              </dl>
               <button className="btn btn-outline self-start" onClick={close}>
                 Cerrar detalle
               </button>
@@ -395,7 +426,7 @@ export default function UsersPage() {
               >
                 <div className="card-body">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h2 className="card-title break-all">@{user.username}</h2>
+                    <h2 className="card-title break-all">{user.username}</h2>
                     <span
                       className={
                         user.status === "ACTIVE"
@@ -406,12 +437,26 @@ export default function UsersPage() {
                       {user.status === "ACTIVE" ? "Activo" : "Inactivo"}
                     </span>
                   </div>
-                  <p>
-                    {[user.firstName, user.lastName]
-                      .filter(Boolean)
-                      .join(" ") || "Sin nombre"}{" "}
-                    · {roleLabels[user.userRole]}
-                  </p>
+                  <dl className="grid gap-2 text-sm sm:grid-cols-2">
+                    <div>
+                      <dt className="opacity-70">Nombre</dt>
+                      <dd className="font-medium">
+                        {[user.firstName, user.lastName]
+                          .filter(Boolean)
+                          .join(" ") || "Sin nombre"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="opacity-70">Rol</dt>
+                      <dd className="font-medium">
+                        {roleLabels[user.userRole]}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="opacity-70">DNI</dt>
+                      <dd className="font-medium">{user.dni}</dd>
+                    </div>
+                  </dl>
                   <div className="card-actions">
                     <button
                       className="btn btn-sm btn-outline"
@@ -450,7 +495,7 @@ export default function UsersPage() {
                                   : "ACTIVE";
                               if (
                                 await confirmAction(
-                                  `¿${next === "ACTIVE" ? "Activar" : "Desactivar"} a @${user.username}?`,
+                                  `¿${next === "ACTIVE" ? "Activar" : "Desactivar"} a ${user.username}?`,
                                 )
                               ) {
                                 setNotice("");

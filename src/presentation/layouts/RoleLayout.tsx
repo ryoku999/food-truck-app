@@ -76,7 +76,6 @@ export default function RoleLayout({ title }: { title: string }) {
               ...(management
                 ? [
                     ["/reports", "Reportes"],
-                    ["/audit-logs", "Auditoría"],
                     ["/business", "Negocio"],
                     ["/users", "Usuarios"],
                     ["/local", "Local"],

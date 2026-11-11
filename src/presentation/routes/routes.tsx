@@ -28,7 +28,7 @@ import {
   WaiterOrdersPage,
 } from "./lazy-routes";
 import { HomeRedirect, RouteMessage } from "./route-pages";
-import { AuditPage, ReportsPage } from "./lazy-routes";
+import { ReportsPage } from "./lazy-routes";
 
 const panels: Record<UserRole, { title: string; description: string }> = {
   ADMIN: {
@@ -195,16 +195,6 @@ export const routes = createBrowserRouter([
                       fallback={<p role="status">Cargando reportes…</p>}
                     >
                       <ReportsPage />
-                    </Suspense>
-                  ),
-                },
-                {
-                  path: "audit-logs",
-                  element: (
-                    <Suspense
-                      fallback={<p role="status">Cargando auditoría…</p>}
-                    >
-                      <AuditPage />
                     </Suspense>
                   ),
                 },
