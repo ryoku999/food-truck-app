@@ -1,0 +1,10 @@
+services:
+  food-truck-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+    ports:
+      - "7000:7000"
+    restart: unless-stopped

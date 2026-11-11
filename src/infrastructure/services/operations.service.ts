@@ -14,10 +14,7 @@ export type OperationEvent = (typeof operationEvents)[number];
 
 export function createOperationsSocket() {
   const rest = import.meta.env.VITE_API_URL || "/api";
-  const origin = new URL(
-    import.meta.env.VITE_OPERATIONS_URL || rest,
-    window.location.origin,
-  ).origin;
+  const origin = new URL(rest, window.location.origin).origin;
   return io(`${origin}/operations`, {
     withCredentials: true,
     autoConnect: false,
