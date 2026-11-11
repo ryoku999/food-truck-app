@@ -1,0 +1,86 @@
+export type Named = { id: string; name: string };
+export type CatalogImage = {
+  fileId: string;
+  url: string;
+  originalName: string;
+  sortOrder: number;
+  isPrimary?: boolean;
+};
+export type Category = Named & {
+  description: string | null;
+  productionArea: Named | null;
+  active: boolean;
+  sortOrder: number;
+  images: CatalogImage[];
+};
+export type Variant = Named & {
+  price: string;
+  active: boolean;
+  available: boolean;
+  sortOrder: number;
+};
+export type ModifierOption = Named & {
+  priceDelta: string;
+  active: boolean;
+  available: boolean;
+  sortOrder: number;
+};
+export type ModifierGroup = Named & {
+  description: string | null;
+  selectionType: "SINGLE" | "MULTIPLE";
+  minSelections: number;
+  maxSelections: number | null;
+  required: boolean;
+  active: boolean;
+  sortOrder: number;
+  options: ModifierOption[];
+};
+export type ComboItem = {
+  id: string;
+  productId: string;
+  productNameSnapshot: string;
+  additionalPrice: string;
+  active: boolean;
+  sortOrder: number;
+};
+export type ComboGroup = Named & {
+  minSelections: number;
+  maxSelections: number;
+  sortOrder: number;
+  items: ComboItem[];
+};
+export type Product = Category & {
+  category: Named;
+  basePrice: string;
+  available: boolean;
+  featured: boolean;
+  variants: Variant[];
+  modifierGroups: ModifierGroup[];
+  comboGroups: ComboGroup[];
+};
+export type ProductPage = {
+  items: Product[];
+  meta: { page: number; pageSize: number; pageCount: number; total: number };
+};
+export type Menu = {
+  categories: (Named & {
+    description: string | null;
+    sortOrder: number;
+    products: Product[];
+  })[];
+};
+export type ProductFilters = {
+  page: number;
+  pageSize: number;
+  search?: string;
+  categoryId?: string;
+};
+export type CatalogValue = string | number | boolean | null;
+export type CatalogFields = Record<string, CatalogValue>;
+export type CatalogResource = "categories" | "products" | "modifier-groups";
+export type CatalogEditResource =
+  | CatalogResource
+  | "modifier-options"
+  | "product-variants"
+  | "combo-groups"
+  | "combo-group-items";
