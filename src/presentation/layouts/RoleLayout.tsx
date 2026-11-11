@@ -16,10 +16,13 @@ export default function RoleLayout({ title }: { title: string }) {
     <div className="min-h-dvh bg-base-200 text-base-content">
       <header className="border-b border-base-300 bg-base-100">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-8">
-          <div>
-            <p className="font-bold">Food Truck</p>
-            <p className="text-sm">{title} · {user?.firstName || user?.username}</p>
-          </div>
+          <NavLink to={home} className="flex items-center gap-3">
+            <img src="/logo.png" alt="" width={44} height={44} className="size-11 shrink-0 object-contain" />
+            <div>
+              <p className="font-bold">Food Truck</p>
+              <p className="text-sm">{title} · {user?.firstName || user?.username}</p>
+            </div>
+          </NavLink>
           <div className="flex flex-wrap items-center gap-2">
             <ThemeSelector />
             <button type="button" className="btn btn-outline min-h-11" disabled={logout.isPending} onClick={() => logout.mutate()}>
