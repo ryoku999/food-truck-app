@@ -1,3 +1,4 @@
+import { useConfirm } from "@/presentation/components/use-confirm";
 import { useBusiness, useBusinessActions, useSignedImage } from "@/infrastructure/hooks/use-management";
 import type { Business } from "@/core/entities/management.entity";
 import { apiError } from "@/shared/utils/api-error";
@@ -34,6 +35,7 @@ function LogoPreview({ logo }: { logo: NonNullable<Business["logo"]> }) {
 }
 
 function BusinessForm({ business }: { business: Business | null }) {
+  const confirmAction = useConfirm();
   const { settings, upload, logo } = useBusinessActions();
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState("");
@@ -96,8 +98,8 @@ function BusinessForm({ business }: { business: Business | null }) {
             {(upload.isError || logo.isError) && <p role="alert" className="alert alert-error">{apiError(upload.error ?? logo.error, "No se pudo actualizar el logo.")}</p>}
             {logo.isSuccess && <p role="status">Logo actualizado.</p>}
             <button className="btn btn-primary" disabled={!file || busy} onClick={() => void saveLogo()}>{busy ? "Actualizando…" : upload.data ? "Reintentar asociación" : "Subir y asociar"}</button>
-            {business.logo && <button className="btn btn-outline" disabled={busy} onClick={() => {
-              if (window.confirm("¿Quitar el logo del negocio?")) logo.mutate(null);
+            {business.logo && <button className="btn btn-outline" disabled={busy} onClick={async () => {
+              if ((await confirmAction("¿Quitar el logo del negocio?"))) logo.mutate(null);
             }}>Quitar logo</button>}
           </> : <p>Guarda los datos del negocio antes de subir una imagen.</p>}
         </div>

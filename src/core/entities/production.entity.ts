@@ -17,6 +17,7 @@ export interface ProductionItem {
   notes: string | null;
   status: OrderItemStatus;
   sentAt: string | null;
+  roundNumber: number | null;
   createdAt: string;
   elapsedSeconds: number;
 }

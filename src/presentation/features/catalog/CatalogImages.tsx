@@ -1,3 +1,4 @@
+import { useConfirm } from "@/presentation/components/use-confirm";
 import type { CatalogImage, Named } from "@/core/entities/catalog.entity";
 import { useCatalogActions } from "@/infrastructure/hooks/use-catalog";
 import { filesService } from "@/infrastructure/services/management.service";
@@ -5,6 +6,7 @@ import { apiError } from "@/shared/utils/api-error";
 import { useRef, useState } from "react";
 
 export function CatalogImages({ resource, item }: { resource: "categories" | "products"; item: Named & { images: CatalogImage[] } }) {
+  const confirmAction = useConfirm();
   const actions = useCatalogActions();
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File>();
@@ -50,8 +52,8 @@ export function CatalogImages({ resource, item }: { resource: "categories" | "pr
           <p className="break-all">{image.originalName} {image.isPrimary && <span className="badge badge-primary">Principal</span>}</p>
           <div className="flex flex-wrap gap-2">
             {resource === "products" && !image.isPrimary && <button className="btn btn-sm btn-outline" disabled={busy || actions.isPending} onClick={() => actions.mutate(service => service.image(resource, item.id, image.fileId, "update", { isPrimary: true }))}>Hacer principal</button>}
-            <button className="btn btn-sm btn-outline" disabled={busy || actions.isPending} onClick={() => {
-              if (window.confirm("¿Quitar esta imagen de la carta?")) actions.mutate(service => service.image(resource, item.id, image.fileId, "remove"));
+            <button className="btn btn-sm btn-outline" disabled={busy || actions.isPending} onClick={async () => {
+              if ((await confirmAction("¿Quitar esta imagen de la carta?"))) actions.mutate(service => service.image(resource, item.id, image.fileId, "remove"));
             }}>Quitar</button>
           </div>
         </li>;

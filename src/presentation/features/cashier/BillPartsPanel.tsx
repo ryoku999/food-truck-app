@@ -1,3 +1,4 @@
+import { useConfirm } from "@/presentation/components/use-confirm";
 import type { BillParts, ProductSelection } from "@/core/entities/cashier.entity";
 import { useCashierAction } from "@/infrastructure/hooks/use-cashier";
 import { apiError } from "@/shared/utils/api-error";
@@ -57,6 +58,7 @@ export function BillPartsPanel({ id, bill, selected, select, editable, blocked, 
   id: string; bill: BillParts; selected?: string; select: (id: string) => void; editable: boolean; blocked: boolean; format: (value: string) => string;
   choose: (selection: ProductSelection) => void; showPicker: boolean;
 }) {
+  const confirmAction = useConfirm();
   const remove = useCashierAction<BillParts>();
   return <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4">
     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -78,8 +80,8 @@ export function BillPartsPanel({ id, bill, selected, select, editable, blocked, 
         <div className="flex flex-wrap gap-2">
           {editable && !paid && <button className={`btn min-h-11 ${selected === part.id ? "btn-primary" : "btn-outline"}`} disabled={blocked} aria-pressed={selected === part.id} onClick={() => select(part.id)}>{selected === part.id ? "Parte seleccionada" : "Cobrar esta parte"}</button>}
           {paid && <BillDocumentButton document={{ orderId: id, partId: part.id }} disabled={blocked} />}
-          {editable && part.removable && <button className="btn btn-ghost min-h-11" disabled={blocked || remove.isPending} onClick={() => {
-            if (window.confirm("¿Liberar los productos asignados a esta parte?")) remove.mutate(repo => repo.removeBillPart(id, part.id));
+          {editable && part.removable && <button className="btn btn-ghost min-h-11" disabled={blocked || remove.isPending} onClick={async () => {
+            if ((await confirmAction("¿Liberar los productos asignados a esta parte?"))) remove.mutate(repo => repo.removeBillPart(id, part.id));
           }}>Liberar parte</button>}
         </div>
       </article>;

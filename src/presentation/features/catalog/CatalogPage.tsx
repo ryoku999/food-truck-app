@@ -1,3 +1,4 @@
+import { useConfirm } from "@/presentation/components/use-confirm";
 import type { CatalogEditResource, CatalogResource, ComboGroup, ComboItem, ModifierGroup, ModifierOption, Named, Product, Variant } from "@/core/entities/catalog.entity";
 import { useCatalogActions, useCatalogModifiers, useCatalogProduct, useCatalogProducts, useCategories, useMenu } from "@/infrastructure/hooks/use-catalog";
 import { useProductionAreas } from "@/infrastructure/hooks/use-local";
@@ -50,6 +51,7 @@ function ModifierAssignment({ product, groups }: { product: Product; groups: Mod
 }
 
 export default function CatalogPage() {
+  const confirmAction = useConfirm();
   const [section, setSection] = useState<CatalogResource>("products");
   const [selected, setSelected] = useState<string>();
   const [editor, setEditor] = useState<Editor>();
@@ -231,8 +233,8 @@ export default function CatalogPage() {
               {combo.items.map(item => <div key={item.id} className="flex flex-wrap items-center gap-2 border-t border-base-300 pt-2">
                 <p className="grow">{item.productNameSnapshot} · Adicional {item.additionalPrice} · {item.active ? "Activo" : "Inactivo"}</p>
                 <button className="btn btn-sm btn-outline" disabled={!!editor || actions.isPending} onClick={() => editComboItem(combo, item)}>Editar</button>
-                <button className="btn btn-sm btn-outline" disabled={!!editor || actions.isPending} onClick={() => {
-                  if (window.confirm("¿Quitar este componente del combo?")) actions.mutate(service => service.removeComboItem(item.id));
+                <button className="btn btn-sm btn-outline" disabled={!!editor || actions.isPending} onClick={async () => {
+                  if ((await confirmAction("¿Quitar este componente del combo?"))) actions.mutate(service => service.removeComboItem(item.id));
                 }}>Quitar</button>
               </div>)}
             </div>)}

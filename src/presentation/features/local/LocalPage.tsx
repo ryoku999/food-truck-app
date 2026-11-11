@@ -1,3 +1,4 @@
+import { useConfirm } from "@/presentation/components/use-confirm";
 import { useDiningAreas, useLocalActions, useLocalTables, useProductionAreas } from "@/infrastructure/hooks/use-local";
 import { apiError } from "@/shared/utils/api-error";
 import { useState } from "react";
@@ -7,6 +8,7 @@ import { LocalForm, type LocalEditor } from "./LocalForm";
 const tabs = { production: "Producción", dining: "Áreas del local", tables: "Mesas" } as const;
 
 export default function LocalPage() {
+  const confirmAction = useConfirm();
   const [params, setParams] = useSearchParams();
   const view = params.get("view");
   const tab = view === "dining" || view === "tables" ? view : "production";
@@ -68,8 +70,8 @@ export default function LocalPage() {
           <p>{description}</p>
           <div className="card-actions">
             <button className="btn btn-outline" disabled={!!editor} onClick={() => { setNotice(""); setEditor(edit); }}>Editar</button>
-            {edit.kind !== "tables" && <button className="btn btn-outline" disabled={active.isPending || !!editor} onClick={() => {
-              if (item.active && !window.confirm(`¿Desactivar ${title}?`)) return;
+            {edit.kind !== "tables" && <button className="btn btn-outline" disabled={active.isPending || !!editor} onClick={async () => {
+              if (item.active && !(await confirmAction(`¿Desactivar ${title}?`))) return;
               setNotice("");
               active.mutate({ id: item.id, kind: edit.kind === "dining" ? "dining-areas" : "production-areas", active: !item.active }, { onSuccess: () => setNotice("Estado actualizado.") });
             }}>{item.active ? "Desactivar" : "Activar"}</button>}

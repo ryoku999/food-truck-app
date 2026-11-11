@@ -20,6 +20,7 @@ class PrintingService implements PrintingRepository {
   job(id: string, signal?: AbortSignal) { return this.get<PrintJobDetail>(`/print-jobs/${id}`, signal); }
   retry(id: string) { return this.write<PrintJob>("post", `/print-jobs/${id}/retry`); }
   test(id: string, message?: string) { return this.write<PrintJob>("post", `/printers/${id}/test`, { message }); }
+  prebill(orderId: string, printerId?: string, copyId?: string) { return this.write<PrintJob>("post", `/orders/${orderId}/print-prebill`, { printerId, copyId }); }
   ticket(orderId: string, printerId?: string) { return this.write<PrintJob>("post", `/orders/${orderId}/print-ticket`, { printerId }); }
   receipt(paymentId: string) { return this.write<PrintJob>("post", `/payments/${paymentId}/print-receipt`); }
   partTicket(orderId: string, partId: string) { return this.write<PrintJob>("post", `/orders/${orderId}/bill-parts/${partId}/print-ticket`); }

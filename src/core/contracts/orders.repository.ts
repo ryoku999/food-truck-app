@@ -10,4 +10,6 @@ export interface OrdersRepository {
   updateItem(id: string, itemId: string, input: DraftItemUpdate): Promise<Order>;
   removeItem(id: string, itemId: string): Promise<Order>;
   send(id: string): Promise<Order>;
+  cancel(id: string, reason: string): Promise<Order>;
+  cancelItem(id: string, itemId: string, reason: string, quantity?: number): Promise<Order>;
 }

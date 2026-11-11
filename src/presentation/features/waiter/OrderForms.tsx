@@ -31,9 +31,13 @@ export function OrderForm({ order, initialTable, close }: { order?: Order; initi
   });
   const type = useWatch({ control, name: "type" });
   const selected = useWatch({ control, name: "tableIds" });
-  const candidates = map.data?.areas.flatMap(area => area.tables
-    .filter(table => table.active && (table.openOrder ? table.openOrder.id === order?.id : table.status === "AVAILABLE"))
-    .map(table => ({ id: table.id, label: `${area.name} · ${table.name || `Mesa ${table.number}`}` }))) ?? [];
+  const tableAreas = map.data?.areas.map(area => ({
+    id: area.id,
+    name: area.name,
+    tables: area.tables.filter(table => table.active &&
+      (table.openOrder ? table.openOrder.id === order?.id : table.status === "AVAILABLE")),
+  })).filter(area => area.tables.length > 0) ?? [];
+  const candidates = tableAreas.flatMap(area => area.tables);
   return <form className="card border border-base-300 bg-base-100" noValidate onSubmit={handleSubmit(async values => {
     const tableIds = type === "DINE_IN" ? values.tableIds.filter(id => candidates.some(table => table.id === id)) : [];
     if (!order && type === "DINE_IN" && (!tableIds.length || tableIds.length !== values.tableIds.length)) {
@@ -60,9 +64,19 @@ export function OrderForm({ order, initialTable, close }: { order?: Order; initi
         {map.isPending && <p role="status">Cargando mesas…</p>}
         {map.isError && <p role="alert" className="text-error">No se pudieron cargar las mesas.</p>}
         {map.isSuccess && candidates.length === 0 && <p>No hay mesas disponibles.</p>}
-        {candidates.map(table => <label key={table.id} className="label flex min-h-11 justify-start"><input type="checkbox" className="checkbox" checked={selected.includes(table.id)} onChange={event => {
-          setValue("tableIds", event.target.checked ? [...selected, table.id] : selected.filter(id => id !== table.id), { shouldValidate: true });
-        }} /> {table.label}</label>)}
+        <div className="space-y-4">
+          {tableAreas.map(area => <fieldset key={area.id} className="rounded-box border border-base-300 p-3">
+            <legend className="px-2 font-semibold">{area.name}</legend>
+            <div className="grid grid-cols-3 gap-2">
+              {area.tables.map(table => <label key={table.id} className={`flex min-h-14 min-w-0 cursor-pointer items-center gap-2 rounded-box border p-2 ${selected.includes(table.id) ? "border-primary bg-primary/10" : "border-base-300 bg-base-100"}`}>
+                <input type="checkbox" className="checkbox checkbox-sm shrink-0" checked={selected.includes(table.id)} onChange={event => {
+                  setValue("tableIds", event.target.checked ? [...selected, table.id] : selected.filter(id => id !== table.id), { shouldValidate: true });
+                }} />
+                <span className="min-w-0 break-words text-sm">{table.name || `Mesa ${table.number}`}</span>
+              </label>)}
+            </div>
+          </fieldset>)}
+        </div>
         {errors.tableIds?.message && <p role="alert" className="text-error">{errors.tableIds.message}</p>}
       </fieldset>}
       <label className="grid gap-1">Cliente (opcional)<input className="input w-full" maxLength={150} {...register("customerName")} /></label>
@@ -90,13 +104,25 @@ export function OrderTablesForm({ order, close }: { order: Order; close: () => v
     <h2 className="card-title">Mesas del pedido</h2>
     {map.isPending && <p role="status">Cargando mesas…</p>}
     {map.isError && <p role="alert" className="text-error">No se pudieron cargar las mesas.</p>}
-    {map.data?.areas.map(area => <fieldset key={area.id}><legend className="font-semibold">{area.name}</legend>
-      {area.tables.filter(table => table.openOrder ? table.openOrder.id === order.id : table.active && table.status === "AVAILABLE").map(table => (
-        <label key={table.id} className="label flex min-h-11 justify-start"><input type="checkbox" className="checkbox" checked={selected.includes(table.id)} onChange={event => {
-          setValue("tableIds", event.target.checked ? [...selected, table.id] : selected.filter(id => id !== table.id), { shouldValidate: true });
-        }} /> {table.name || `Mesa ${table.number}`}</label>
-      ))}
-    </fieldset>)}
+    <div className="space-y-4">
+      {map.data?.areas.map(area => {
+        const tables = area.tables.filter(table => table.openOrder
+          ? table.openOrder.id === order.id
+          : table.active && table.status === "AVAILABLE");
+        if (!tables.length) return null;
+        return <fieldset key={area.id} className="rounded-box border border-base-300 p-3">
+          <legend className="px-2 font-semibold">{area.name}</legend>
+          <div className="grid grid-cols-3 gap-2">
+            {tables.map(table => <label key={table.id} className={`flex min-h-14 min-w-0 cursor-pointer items-center gap-2 rounded-box border p-2 ${selected.includes(table.id) ? "border-primary bg-primary/10" : "border-base-300 bg-base-100"}`}>
+              <input type="checkbox" className="checkbox checkbox-sm shrink-0" checked={selected.includes(table.id)} onChange={event => {
+                setValue("tableIds", event.target.checked ? [...selected, table.id] : selected.filter(id => id !== table.id), { shouldValidate: true });
+              }} />
+              <span className="min-w-0 break-words text-sm">{table.name || `Mesa ${table.number}`}</span>
+            </label>)}
+          </div>
+        </fieldset>;
+      })}
+    </div>
     {(errors.tableIds?.message || errors.root?.message) && <p role="alert" className="alert alert-error">{errors.tableIds?.message || errors.root?.message}</p>}
     <button className="btn btn-primary" disabled={isSubmitting || !map.isSuccess}>Guardar mesas</button>
     <button className="btn btn-ghost" type="button" disabled={isSubmitting} onClick={close}>Cancelar</button>

@@ -11,6 +11,7 @@ export interface PrintingRepository {
   job(id: string, signal?: AbortSignal): Promise<PrintJobDetail>;
   retry(id: string): Promise<PrintJob>;
   test(id: string, message?: string): Promise<PrintJob>;
+  prebill(orderId: string, printerId?: string, copyId?: string): Promise<PrintJob>;
   ticket(orderId: string, printerId?: string): Promise<PrintJob>;
   receipt(paymentId: string): Promise<PrintJob>;
   partTicket(orderId: string, partId: string): Promise<PrintJob>;

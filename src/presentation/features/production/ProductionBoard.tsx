@@ -12,6 +12,22 @@ const columns = [
 ] as const;
 type Column = typeof columns[number];
 
+const sendTime = new Intl.DateTimeFormat("es-PE", {
+  timeZone: "America/Lima", day: "2-digit", month: "2-digit", year: "numeric",
+  hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
+});
+
+function groupRounds(items: ProductionItem[]) {
+  const groups = new Map<string, { key: string; first: ProductionItem; items: ProductionItem[] }>();
+  for (const item of items) {
+    const key = `${item.orderId}:${item.sentAt ?? "undated"}`;
+    const group = groups.get(key);
+    if (group) group.items.push(item);
+    else groups.set(key, { key, first: item, items: [item] });
+  }
+  return [...groups.values()];
+}
+
 function elapsed(item: ProductionItem, now: number) {
   const start = Date.parse(item.sentAt ?? item.createdAt);
   const seconds = Number.isFinite(start) ? Math.max(0, Math.floor((now - start) / 1000)) : item.elapsedSeconds;
@@ -28,7 +44,7 @@ function ProductionCard({ item, column, now, busy, submit }: { item: ProductionI
         <span className="badge badge-outline">Pedido #{item.orderNumber}</span>
         <span className="text-sm tabular-nums">En cola: {elapsed(item, now)}</span>
       </div>
-      <h3 className="text-xl font-bold">{item.quantity} × {item.productName}</h3>
+      <h4 className="text-xl font-bold">{item.quantity} × {item.productName}</h4>
       {item.variantName && <p className="font-medium">{item.variantName}</p>}
       <p className="text-sm">{item.tables.length ? item.tables.map(table => `${table.name || `Mesa ${table.number}`} · ${table.diningAreaName}`).join(", ") : "Pedido sin mesa"}</p>
       {(item.modifiers.length > 0 || item.comboSelections.length > 0 || item.notes) && <div className="space-y-1 rounded-box bg-base-200 p-3 text-sm">
@@ -68,8 +84,24 @@ function ProductionColumn({ area, column, search, connected, visible, now }: {
     </div>}
     {change.isError && <p className="alert alert-error" role="alert">{apiError(change.error, "No se confirmó el cambio. Revisa el estado actualizado.")}</p>}
     {queue.data?.items.length === 0 && <p className="rounded-box border border-base-300 p-4">{page === 1 ? "Sin ítems en esta cola." : "Esta página ya no tiene ítems. Vuelve a la anterior."}</p>}
-    <ul className="space-y-3">
-      {queue.data?.items.map(item => <ProductionCard key={item.id} item={item} column={column} now={now} busy={change.isPending || queue.isError} submit={(id, next) => change.mutate({ id, change: next })} />)}
+    <ul className="space-y-4">
+      {groupRounds(queue.data?.items ?? []).map(group => <li key={group.key} className="space-y-3 rounded-box border border-base-300 p-3">
+        <header className="space-y-1">
+          <h3 className="flex flex-wrap items-center gap-2 font-semibold">
+            Pedido #{group.first.orderNumber}
+            <span className={`badge ${(group.first.roundNumber ?? 0) > 1 ? "badge-secondary" : "badge-outline"}`}>
+              {group.first.roundNumber ? `Ronda ${group.first.roundNumber}` : "Envío sin identificar"}
+            </span>
+            {(group.first.roundNumber ?? 0) > 1 && <span className="text-sm">Adicional</span>}
+          </h3>
+          <p className="text-sm">{group.first.sentAt
+            ? <>Enviada <time dateTime={group.first.sentAt}>{sendTime.format(new Date(group.first.sentAt))}</time> · Lima</>
+            : "Sin hora de envío registrada"}</p>
+        </header>
+        <ul className="space-y-3">
+          {group.items.map(item => <ProductionCard key={item.id} item={item} column={column} now={now} busy={change.isPending || queue.isError} submit={(id, next) => change.mutate({ id, change: next })} />)}
+        </ul>
+      </li>)}
     </ul>
     {(page > 1 || (queue.data?.meta.pageCount ?? 0) > 1) && <nav className="flex flex-wrap items-center gap-2" aria-label={`Páginas de ${column.label.toLowerCase()}`}>
       <button className="btn btn-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>Anterior</button>

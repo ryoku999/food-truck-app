@@ -1,3 +1,4 @@
+import { useConfirm } from "@/presentation/components/use-confirm";
 import { printerPurposes, type AgentToken, type Printer, type PrinterAgent, type PrintJob } from "@/core/entities/printing.entity";
 import type { ProductionArea } from "@/core/entities/local.entity";
 import { useProductionAreas } from "@/infrastructure/hooks/use-local";
@@ -94,6 +95,7 @@ function AgentForm({ item, token, close }: { item?: PrinterAgent; token: (result
 }
 
 export default function PrinterSettingsPage() {
+  const confirmAction = useConfirm();
   const role = useAuthStore(state => state.user?.userRole);
   const admin = role === "ADMIN";
   const jobsPath = `${role ? roleBasedRedirection(role) : ""}/print-jobs`;
@@ -169,8 +171,8 @@ export default function PrinterSettingsPage() {
           {admin && <div className="flex flex-wrap gap-2">
             <button className="btn btn-outline" disabled={!!editor || agentAction.isPending} onClick={() => setEditor({ kind: "agent", item })}>Editar</button>
             <button className="btn btn-outline" disabled={!!editor || agentAction.isPending} onClick={() => agentAction.mutate(repo => repo.updateAgent(item.id, { active: !item.active }))}>{item.active ? "Desactivar" : "Activar"}</button>
-            <button className="btn btn-outline" disabled={!!editor || !!secret || agentAction.isPending} onClick={() => {
-              if (window.confirm("¿Rotar el token? El agente deberá actualizar su configuración para volver a conectarse.")) {
+            <button className="btn btn-outline" disabled={!!editor || !!secret || agentAction.isPending} onClick={async () => {
+              if ((await confirmAction("¿Rotar el token? El agente deberá actualizar su configuración para volver a conectarse."))) {
                 agentAction.mutate(async repo => setSecret(await repo.rotateAgent(item.id)));
               }
             }}>Rotar token</button>

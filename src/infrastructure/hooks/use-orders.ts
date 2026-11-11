@@ -29,6 +29,22 @@ export function useOrderAction() {
       client.setQueryData(orderKey(order.id), order);
       void client.invalidateQueries({ queryKey: ["orders", "list"] });
       void client.invalidateQueries({ queryKey: ["local", "map"] });
+      void client.invalidateQueries({ queryKey: ["cashier", "payments", order.id] });
     },
+  });
+}
+
+export function useCancelOrder() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason, itemId, quantity }: { id: string; reason: string; itemId?: string; quantity?: number }) => itemId ? ordersService.cancelItem(id, itemId, reason, quantity) : ordersService.cancel(id, reason),
+    retry: false,
+    onSuccess: order => client.setQueryData(orderKey(order.id), order),
+    onSettled: () => Promise.all([
+      client.invalidateQueries({ queryKey: ["orders"] }),
+      client.invalidateQueries({ queryKey: ["cashier"] }),
+      client.invalidateQueries({ queryKey: ["local", "map"] }),
+      client.invalidateQueries({ queryKey: ["production"] }),
+    ]),
   });
 }

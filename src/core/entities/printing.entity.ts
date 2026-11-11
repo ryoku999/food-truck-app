@@ -14,7 +14,7 @@ export type Printer = Omit<PrinterInput, "host" | "port" | "systemName" | "conne
 export type PrinterAgent = { id: string; name: string; active: boolean; online: boolean; lastSeenAt: string | null };
 export type AgentToken = { id: string; token: string };
 export type PrintJob = {
-  id: string; printerId: string; orderId: string | null; type: "KITCHEN_COMMAND" | "BAR_COMMAND" | "CUSTOMER_TICKET" | "PAYMENT_RECEIPT" | "PART_TICKET" | "CASH_REPORT" | "TEST";
+  id: string; printerId: string; orderId: string | null; type: "KITCHEN_COMMAND" | "BAR_COMMAND" | "CUSTOMER_TICKET" | "PREBILL" | "PAYMENT_RECEIPT" | "PART_TICKET" | "CASH_REPORT" | "TEST";
   status: PrintStatus; attempts: number; error: string | null; payload: unknown;
   createdAt: string; processingAt: string | null; printedAt: string | null; failedAt: string | null;
 };

@@ -57,7 +57,7 @@ export function useOperationsConnection(): OperationsState {
         else {
           queue("orders");
           queue("local", "map");
-          if (event === "order.status.changed") queue("cashier", "payments");
+          if (event === "order.status.changed" || event === "order.sent") queue("cashier", "payments");
           if (event === "order-item.status.changed") queue("production");
         }
       });

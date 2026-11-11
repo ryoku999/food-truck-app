@@ -1,3 +1,4 @@
+import { useConfirm } from "@/presentation/components/use-confirm";
 import type { CashSession } from "@/core/entities/cashier.entity";
 import { manualMovements } from "@/core/entities/cashier.entity";
 import { useCashRegisters, useCashSession, useCashierAction } from "@/infrastructure/hooks/use-cashier";
@@ -38,10 +39,11 @@ function Collections({ session, format }: { session: CashSession; format: (value
 }
 
 function SessionForm({ registerId, session, complete, cancel }: { registerId: string; session?: CashSession; complete: (session: CashSession) => void; cancel?: () => void }) {
+  const confirmAction = useConfirm();
   const action = useCashierAction<CashSession>();
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({ resolver: zodResolver(sessionSchema), defaultValues: { amount: "", notes: "" } });
   return <form className="card border border-base-300 bg-base-100" noValidate onSubmit={handleSubmit(async ({ amount, notes }) => {
-    if (session && !window.confirm("¿Confirmar el cierre con el efectivo contado?")) return;
+    if (session && !(await confirmAction("¿Confirmar el cierre con el efectivo contado?"))) return;
     try {
       const result = await action.mutateAsync(repo => session ? repo.close(session.id, amountNumber(amount), notes || undefined) : repo.open(registerId, amountNumber(amount), notes || undefined));
       complete(result);

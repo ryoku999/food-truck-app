@@ -6,14 +6,20 @@ export type OrderStatus = "DRAFT" | "SENT" | "IN_PROGRESS" | "READY" | "SERVED" 
 export type OrderItemStatus = "DRAFT" | "PENDING" | "PREPARING" | "READY" | "SERVED" | "CANCELLED";
 export interface OrderItem {
   id: string;
+  productId: string | null;
+  productVariantId: string | null;
   productNameSnapshot: string;
   variantNameSnapshot: string | null;
   quantity: number;
+  unitPrice: string;
   subtotal: string;
   notes: string | null;
   status: OrderItemStatus;
-  modifiers: { id: string; groupNameSnapshot: string; optionNameSnapshot: string }[];
-  comboSelections: { id: string; groupNameSnapshot: string; productNameSnapshot: string }[];
+  sentAt: string | null;
+  roundNumber: number | null;
+  cancellationReason: string | null;
+  modifiers: { id: string; groupNameSnapshot: string; modifierOptionId: string | null; optionNameSnapshot: string; priceDelta: string; quantity: number }[];
+  comboSelections: { id: string; comboGroupItemId: string | null; groupNameSnapshot: string; productNameSnapshot: string; additionalPrice: string }[];
 }
 export interface Order {
   id: string;
@@ -37,4 +43,4 @@ export type OrderFilters = { createdById?: string; page: number; pageSize: numbe
 export type CreateOrder = { type: OrderType; tableIds: string[]; customerName?: string; customerPhone?: string; notes?: string };
 export type OrderDetails = { customerName: string | null; customerPhone: string | null; notes: string | null };
 export type AddOrderItem = { productId: string; productVariantId?: string; quantity: number; notes?: string; modifierOptionIds: string[]; comboSelections: { comboGroupId: string; comboGroupItemIds: string[] }[] };
-export type DraftItemUpdate = { quantity: number; notes: string | null };
+export type DraftItemUpdate = { quantity: number; notes: string | null; productVariantId?: string | null; modifierOptionIds?: string[]; comboSelections?: AddOrderItem["comboSelections"] };

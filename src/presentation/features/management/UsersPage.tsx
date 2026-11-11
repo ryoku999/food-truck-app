@@ -1,3 +1,4 @@
+import { useConfirm } from "@/presentation/components/use-confirm";
 import type { ManagedUser, UserFilters } from "@/core/entities/management.entity";
 import { useUser, useUserActions, useUsers } from "@/infrastructure/hooks/use-management";
 import { useAuthStore } from "@/infrastructure/storage/auth-storage";
@@ -78,6 +79,7 @@ function PasswordForm({ user, close }: { user: ManagedUser; close: () => void })
 }
 
 export default function UsersPage() {
+  const confirmAction = useConfirm();
   const admin = useAuthStore(state => state.user?.userRole === "ADMIN");
   const currentId = useAuthStore(state => state.user?.id);
   const [filters, setFilters] = useState<UserFilters>({ page: 1, pageSize: 12 });
@@ -137,9 +139,9 @@ export default function UsersPage() {
             {admin && <>
               <button className="btn btn-sm btn-outline" onClick={() => setSelection({ mode: "edit", id: user.id })}>Editar</button>
               <button className="btn btn-sm btn-outline" onClick={() => setSelection({ mode: "password", id: user.id })}>Contraseña</button>
-              {user.id !== currentId && <button className="btn btn-sm btn-outline" disabled={status.isPending} onClick={() => {
+              {user.id !== currentId && <button className="btn btn-sm btn-outline" disabled={status.isPending} onClick={async () => {
                 const next = user.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-                if (window.confirm(`¿${next === "ACTIVE" ? "Activar" : "Desactivar"} a @${user.username}?`)) {
+                if ((await confirmAction(`¿${next === "ACTIVE" ? "Activar" : "Desactivar"} a @${user.username}?`))) {
                   setNotice("");
                   status.mutate({ id: user.id, status: next }, { onSuccess: () => setNotice("Estado actualizado.") });
                 }

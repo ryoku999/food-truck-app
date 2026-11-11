@@ -1,3 +1,4 @@
+import { CancelOrderForm } from "./CancelOrderForm";
 import type { OrderPayments, Payment, ProductSelection } from "@/core/entities/cashier.entity";
 import { useBillParts, useCashRegisters, useCashierAction, useOrderPayments, usePaymentMethods } from "@/infrastructure/hooks/use-cashier";
 import { useBusiness } from "@/infrastructure/hooks/use-management";
@@ -131,6 +132,11 @@ function Account({ id }: { id: string }) {
   const payments = useOrderPayments(id);
   const parts = useBillParts(id);
   const business = useBusiness();
+  const [cancelItemId, setCancelItemId] = useState<string>();
+  const [cancelOrder, setCancelOrder] = useState(false);
+  const [cancelNotice, setCancelNotice] = useState("");
+  const role = useAuthStore(state => state.user?.userRole);
+  const canCancel = role === "ADMIN" || role === "MANAGER" || role === "CASHIER";
   const [cancelId, setCancelId] = useState<string>();
   const [partId, setPartId] = useState<string>();
   const [selection, setSelection] = useState<ProductSelection>();
@@ -142,8 +148,10 @@ function Account({ id }: { id: string }) {
   const format = (value: string) => money.format(Number(value));
   const summary = payments.data?.summary;
   const current = order.data;
+  const cancelItem = current?.items.find(item => item.id === cancelItemId && !["CANCELLED", "SERVED"].includes(item.status));
   const cancelling = payments.data?.items.some(item => item.id === cancelId && item.status === "COMPLETED") ?? false;
-  const payable = current && !["DRAFT", "CANCELLED", "PAID"].includes(current.status) && summary && cents(summary.pending) > 0;
+  const hasDraftItems = current?.items.some(item => item.status === "DRAFT") ?? false;
+  const payable = !hasDraftItems && current && !["DRAFT", "CANCELLED", "PAID"].includes(current.status) && summary && cents(summary.pending) > 0;
   const split = !!parts.data?.parts.length;
   const selected = parts.data?.parts.find(part => part.id === partId && cents(part.pending) > 0);
   const productMode = split || (mode === "products" && parts.data?.canSplit);
@@ -162,7 +170,35 @@ function Account({ id }: { id: string }) {
       <div><dt>Pagado</dt><dd className="font-bold">{format(summary.paid)}</dd></div>
       <div><dt>Pendiente</dt><dd className="font-bold">{format(summary.pending)}</dd></div>
     </dl>}
-    <div className="grid items-start gap-4 lg:grid-cols-2">
+    {hasDraftItems && <p role="status" className="alert alert-warning">Hay productos nuevos sin enviar. Pide al mozo que envíe la comanda antes de cobrar.</p>}
+    {cancelNotice && <p role="status" className="alert alert-success">{cancelNotice}</p>}
+    {current && canCancel && !["PAID", "CANCELLED"].includes(current.status) && (
+      cancelOrder ? <CancelOrderForm id={id} number={current.number}
+        close={() => setCancelOrder(false)}
+        complete={() => {
+          setCancelOrder(false); setCancelId(undefined); setPartId(undefined);
+          setSelection(undefined); setSelectionNotice("");
+          setCancelNotice("Pedido cancelado. Las mesas asociadas quedaron liberadas.");
+        }} /> : <div className="space-y-2">
+          <button type="button" className="btn btn-error btn-outline min-h-11"
+            disabled={blocked || !payments.isSuccess || !parts.isSuccess || cancelling || !!cancelItem || split || payments.data.items.some(payment => payment.status === "COMPLETED")}
+            onClick={() => { setCancelNotice(""); setCancelOrder(true); }}>
+            Cancelar pedido y liberar mesas
+          </button>
+          {(split || payments.data?.items.some(payment => payment.status === "COMPLETED")) && <p className="text-sm">Para cancelar productos o el pedido, primero anula los pagos y libera sus partes de cuenta.</p>}
+        </div>
+    )}
+    {current && canCancel && cancelItem && !["DRAFT", "PAID", "CANCELLED"].includes(current.status) && <CancelOrderForm
+      key={cancelItem.id} id={id} number={current.number}
+      item={{ id: cancelItem.id, name: cancelItem.productNameSnapshot + (cancelItem.variantNameSnapshot ? ` · ${cancelItem.variantNameSnapshot}` : ""), quantity: cancelItem.quantity }}
+      close={() => setCancelItemId(undefined)}
+      complete={() => {
+        setCancelItemId(undefined); setSelection(undefined); setPartId(undefined);
+        setSelectionNotice(""); setPickerVersion(version => version + 1);
+        setCancelNotice("Producto cancelado. El total del pedido fue recalculado.");
+      }}
+    />}
+    <div className={(cancelOrder || cancelItem) && current && !["PAID", "CANCELLED"].includes(current.status) ? "hidden" : "grid items-start gap-4 lg:grid-cols-2"}>
       <div className="space-y-4">
         {parts.isPending && <p role="status">Cargando división de cuenta…</p>}
         {parts.isError && <div className="alert alert-error" role="alert">{apiError(parts.error, "No se pudo consultar la división.")}<button className="btn" onClick={() => void parts.refetch()}>Reintentar</button></div>}
@@ -187,11 +223,26 @@ function Account({ id }: { id: string }) {
           } : undefined} />}
       </div>
       <div className="space-y-4">
-        {current && <TicketPanel orderId={id} paid={current.status === "PAID" && !order.isError && !payments.isError && summary != null && cents(summary.pending) === 0} />}
+        {current && canCancel && <TicketPanel kind="prebill" orderId={id}
+          enabled={!blocked && !hasDraftItems && !["DRAFT", "PAID", "CANCELLED"].includes(current.status)} />}
+        {current && <TicketPanel orderId={id} enabled={current.status === "PAID" && !order.isError && !payments.isError && summary != null && cents(summary.pending) === 0} />}
         {current && <section className="rounded-box border border-base-300 bg-base-100 p-4">
           <h2 className="mb-2 text-xl font-semibold">Detalle del pedido</h2>
-          <ul className="space-y-2">{current.items.map(item => <li className="flex justify-between gap-2" key={item.id}>
-            <span>{item.quantity} × {item.productNameSnapshot}{item.variantNameSnapshot ? ` · ${item.variantNameSnapshot}` : ""}{item.status === "CANCELLED" ? " (cancelado)" : ""}</span><span>{format(item.subtotal)}</span>
+          <ul className="space-y-3">{current.items.map(item => <li className="space-y-1 border-b border-base-300 pb-2" key={item.id}>
+            <div className="flex flex-wrap justify-between gap-2">
+              <span>{item.quantity} × {item.productNameSnapshot}{item.variantNameSnapshot ? ` · ${item.variantNameSnapshot}` : ""}{item.status === "CANCELLED" ? " (cancelado)" : ""}</span>
+              <span>{format(item.unitPrice)}{item.quantity > 1 ? " c/u" : ""}</span>
+            </div>
+            {item.modifiers.map(option => <p key={option.id} className="text-sm">{option.groupNameSnapshot}: {option.quantity > 1 ? `${option.quantity} × ` : ""}{option.optionNameSnapshot} ({Number(option.priceDelta) >= 0 ? "+" : ""}{format(option.priceDelta)}{option.quantity > 1 ? " c/u" : ""})</p>)}
+            {item.comboSelections.map(option => <p key={option.id} className="text-sm">{option.groupNameSnapshot}: {option.productNameSnapshot} ({Number(option.additionalPrice) >= 0 ? "+" : ""}{format(option.additionalPrice)})</p>)}
+            <p className="font-semibold">{item.status === "CANCELLED" ? "Importe cancelado" : "Total"}{item.quantity > 1 ? ` (${item.quantity} unidades)` : ""}: {format(item.subtotal)}</p>
+          {item.status === "CANCELLED" && item.cancellationReason && <p className="text-sm">Motivo de cancelación: {item.cancellationReason}</p>}
+            {canCancel && !["DRAFT", "PAID", "CANCELLED"].includes(current.status) && !["CANCELLED", "SERVED"].includes(item.status) && <button
+              type="button" className="btn btn-error btn-outline min-h-11"
+              disabled={blocked || !payments.isSuccess || !parts.isSuccess || cancelling || split || payments.data.items.some(payment => payment.status === "COMPLETED")}
+              onClick={() => { setCancelNotice(""); setCancelItemId(item.id); }}>
+              Cancelar producto
+            </button>}
           </li>)}</ul>
         </section>}
         <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4">

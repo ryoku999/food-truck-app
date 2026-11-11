@@ -28,6 +28,12 @@ class OrdersService implements OrdersRepository {
   async removeItem(id: string, itemId: string) {
     return (await http.delete<ApiEnvelope<Order>>(`/orders/${id}/items/${itemId}`)).data.data;
   }
+  async cancelItem(id: string, itemId: string, reason: string, quantity?: number) {
+    return (await http.post<ApiEnvelope<Order>>(`/orders/${id}/items/${itemId}/cancel`, { reason, quantity })).data.data;
+  }
+  async cancel(id: string, reason: string) {
+    return (await http.post<ApiEnvelope<Order>>(`/orders/${id}/cancel`, { reason })).data.data;
+  }
   async send(id: string) {
     return (await http.post<ApiEnvelope<Order>>(`/orders/${id}/send`, {})).data.data;
   }
