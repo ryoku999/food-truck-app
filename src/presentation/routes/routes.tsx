@@ -22,6 +22,7 @@ import {
   PrintJobPage,
   PrintJobsPage,
   ProductionBoard,
+  ProductEditPage,
   TableMapPage,
   UsersPage,
   WaiterOrderPage,
@@ -147,6 +148,14 @@ export const routes = createBrowserRouter([
                   element: (
                     <Suspense fallback={<p role="status">Cargando carta…</p>}>
                       <CatalogPage />
+                    </Suspense>
+                  ),
+                },
+                {
+                  path: "catalog/products/:productId",
+                  element: (
+                    <Suspense fallback={<p role="status">Cargando producto…</p>}>
+                      <ProductEditPage />
                     </Suspense>
                   ),
                 },

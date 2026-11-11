@@ -21,6 +21,7 @@ import {
 import { useProductionAreas } from "@/infrastructure/hooks/use-local";
 import { apiError } from "@/shared/utils/api-error";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { CatalogForm } from "./CatalogForm";
 import {
   descriptionField,
@@ -196,7 +197,7 @@ export default function CatalogPage() {
   const actions = useCatalogActions();
   const category = categories.data?.find((item) => item.id === selected);
   const group = groups.data?.find((item) => item.id === selected);
-  const product = detail.data;
+  const product = section === "products" ? detail.data : undefined;
   const list =
     section === "categories"
       ? categories
@@ -267,6 +268,8 @@ export default function CatalogPage() {
   function editMain(create: boolean) {
     if (section === "categories") {
       const item = create ? undefined : category;
+      const nextCategoryOrder =
+        Math.max(-1, ...(categories.data ?? []).map((row) => row.sortOrder)) + 1;
       edit(
         item ? "Editar categoría" : "Nueva categoría",
         section,
@@ -287,7 +290,7 @@ export default function CatalogPage() {
             ],
             true,
           ),
-          orderField(item?.sortOrder),
+          orderField(item?.sortOrder ?? nextCategoryOrder),
         ],
         item?.id,
       );
@@ -499,6 +502,8 @@ export default function CatalogPage() {
           value={search}
           onChange={(event) => {
             setSearch(event.target.value);
+            setSelected(undefined);
+            setEditor(undefined);
             setPage(1);
           }}
         />
@@ -509,6 +514,9 @@ export default function CatalogPage() {
             value={categoryId}
             onChange={(event) => {
               setCategoryId(event.target.value);
+              setSelected(undefined);
+              setEditor(undefined);
+              setNotice("");
               setPage(1);
             }}
           >
@@ -574,9 +582,24 @@ export default function CatalogPage() {
                 actions.reset();
               }}
             >
-              {row.name}
-              <span className="badge badge-ghost">
-                {row.active ? "Activo" : "Inactivo"}
+              <span className="min-w-0">
+                <span className="block truncate">{row.name}</span>
+                {section === "categories" && "sortOrder" in row && (
+                  <span className="mt-1 block text-xs opacity-70">
+                    Orden {row.sortOrder}
+                    {"productionArea" in row && row.productionArea
+                      ? ` · ${row.productionArea.name}`
+                      : ""}
+                  </span>
+                )}
+              </span>
+              <span className="flex shrink-0 items-center gap-2">
+                {section === "categories" && "sortOrder" in row && (
+                  <span className="badge badge-outline">#{row.sortOrder}</span>
+                )}
+                <span className="badge badge-ghost">
+                  {row.active ? "Activo" : "Inactivo"}
+                </span>
               </span>
             </button>
           ))}
@@ -602,7 +625,10 @@ export default function CatalogPage() {
             </div>
           )}
         </section>
-        <section className="min-w-0 space-y-4">
+        <section
+          key={`${section}-${selected ?? "none"}`}
+          className="min-w-0 space-y-4"
+        >
           {!selected && <p>Selecciona un registro para gestionarlo.</p>}
           {section === "products" && selected && detail.isPending && (
             <p role="status">Cargando producto…</p>
@@ -623,13 +649,23 @@ export default function CatalogPage() {
                 </p>
               )}
               <div className="flex flex-wrap gap-2">
-                <button
-                  className="btn btn-outline btn-sm"
-                  disabled={!!editor || actions.isPending}
-                  onClick={() => editMain(false)}
-                >
-                  Editar
-                </button>
+                {section === "products" && product ? (
+                  <Link
+                    className="btn btn-outline btn-sm"
+                    to={`products/${product.id}`}
+                    relative="path"
+                  >
+                    Editar producto
+                  </Link>
+                ) : (
+                  <button
+                    className="btn btn-outline btn-sm"
+                    disabled={!!editor || actions.isPending}
+                    onClick={() => editMain(false)}
+                  >
+                    Editar
+                  </button>
+                )}
                 {toggle(section, current)}
                 {product && availability("products", product)}
               </div>
