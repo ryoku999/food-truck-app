@@ -32,6 +32,7 @@ const printerSchema = z
     name,
     purpose: z.enum(printerPurposes),
     connectionType: z.enum(["NETWORK_TCP", "SYSTEM_PRINTER"]),
+    fallbackEnabled: z.boolean(),
     host: z.string().trim().max(253),
     port: z.string().trim(),
     systemName: z.string().trim().max(200),
@@ -41,7 +42,7 @@ const printerSchema = z
     active: z.boolean(),
   })
   .superRefine((fields, context) => {
-    if (fields.connectionType === "NETWORK_TCP") {
+    if (fields.connectionType === "NETWORK_TCP" || fields.fallbackEnabled) {
       if (!fields.host || /[\s/]/.test(fields.host))
         context.addIssue({
           code: "custom",
@@ -58,7 +59,11 @@ const printerSchema = z
           path: ["port"],
           message: "Ingresa un puerto de 1 a 65535.",
         });
-    } else if (!fields.systemName || fields.systemName.startsWith("-")) {
+    }
+    if (
+      (fields.connectionType === "SYSTEM_PRINTER" || fields.fallbackEnabled) &&
+      (!fields.systemName || fields.systemName.startsWith("-"))
+    ) {
       context.addIssue({
         code: "custom",
         path: ["systemName"],
@@ -95,6 +100,7 @@ function PrinterForm({
         (item?.connectionType ?? prefill?.connectionType) === "SYSTEM_PRINTER"
           ? "SYSTEM_PRINTER"
           : "NETWORK_TCP",
+      fallbackEnabled: item?.fallbackEnabled ?? prefill?.fallbackEnabled ?? false,
       host: item?.host ?? prefill?.host ?? "",
       port: String(item?.port ?? prefill?.port ?? 9100),
       systemName: item?.systemName ?? prefill?.systemName ?? "",
@@ -106,6 +112,7 @@ function PrinterForm({
   });
   const network =
     useWatch({ control, name: "connectionType" }) === "NETWORK_TCP";
+  const fallbackEnabled = useWatch({ control, name: "fallbackEnabled" });
   return (
     <form
       className="card border border-base-300 bg-base-100"
@@ -118,10 +125,11 @@ function PrinterForm({
                 name: values.name,
                 purpose: values.purpose,
                 connectionType: values.connectionType,
+                fallbackEnabled: values.fallbackEnabled,
                 active: values.active,
-                host: network ? values.host : undefined,
-                port: network ? Number(values.port) : undefined,
-                systemName: network ? undefined : values.systemName,
+                host: network || values.fallbackEnabled ? values.host : undefined,
+                port: network || values.fallbackEnabled ? Number(values.port) : undefined,
+                systemName: !network || values.fallbackEnabled ? values.systemName : undefined,
                 paperWidth: values.paperWidth === "58" ? 58 : 80,
                 printerAgentId: values.printerAgentId || null,
                 productionAreaId: values.productionAreaId || null,
@@ -156,11 +164,15 @@ function PrinterForm({
             </select>
           </label>
           <label className="grid gap-1">
-            Conexión
+            Conexión principal
             <select className="select w-full" {...register("connectionType")}>
               <option value="NETWORK_TCP">Red TCP</option>
               <option value="SYSTEM_PRINTER">Cola del sistema</option>
             </select>
+          </label>
+          <label className="label min-h-11 self-end">
+            <input type="checkbox" className="checkbox" {...register("fallbackEnabled")} />
+            Usar la otra conexión como respaldo
           </label>
           <label className="grid gap-1">
             Ancho de papel
@@ -169,7 +181,7 @@ function PrinterForm({
               <option value="80">80 mm</option>
             </select>
           </label>
-          {network ? (
+          {(network || fallbackEnabled) && (
             <>
               <label className="grid gap-1">
                 Host o IP
@@ -188,7 +200,8 @@ function PrinterForm({
                 />
               </label>
             </>
-          ) : (
+          )}
+          {(!network || fallbackEnabled) && (
             <label className="grid gap-1">
               Nombre de la cola
               <input className="input w-full" {...register("systemName")} />
@@ -621,6 +634,11 @@ export default function PrinterSettingsPage() {
                       : item.systemName}{" "}
                   · {item.paperWidth} mm
                 </p>
+                {item.fallbackEnabled && (
+                  <p className="text-sm">
+                    Respaldo: {item.connectionType === "NETWORK_TCP" ? item.systemName : `${item.host}:${item.port}`}
+                  </p>
+                )}
                 <p>
                   {agent?.name ?? "Sin agente visible"}
                   {area ? ` · ${area.name}` : ""}

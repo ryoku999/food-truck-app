@@ -17,6 +17,7 @@ export type PrinterInput = {
   name: string;
   purpose: PrinterPurpose;
   connectionType: "NETWORK_TCP" | "SYSTEM_PRINTER";
+  fallbackEnabled?: boolean;
   host?: string;
   port?: number;
   systemName?: string;

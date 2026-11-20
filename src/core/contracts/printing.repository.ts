@@ -24,7 +24,8 @@ export interface PrintingRepository {
   rotateAgent(id: string): Promise<AgentToken>;
   jobs(params: PrintJobFilters, signal?: AbortSignal): Promise<PrintJobPage>;
   job(id: string, signal?: AbortSignal): Promise<PrintJobDetail>;
-  retry(id: string): Promise<PrintJob>;
+  retry(id: string, printerId?: string): Promise<PrintJob>;
+  retryPrinters(id: string, signal?: AbortSignal): Promise<Pick<Printer, "id" | "name">[]>;
   test(id: string, message?: string): Promise<PrintJob>;
   prebill(
     orderId: string,
@@ -33,7 +34,7 @@ export interface PrintingRepository {
   ): Promise<PrintJob>;
   ticket(orderId: string, printerId?: string): Promise<PrintJob>;
   receipt(paymentId: string): Promise<PrintJob>;
-  partTicket(orderId: string, partId: string): Promise<PrintJob>;
+  partTicket(orderId: string, partId: string, copyId?: string): Promise<PrintJob>;
   localHealth(signal?: AbortSignal): Promise<LocalPrinterHealth>;
   discoverLocal(network: string, port: number): Promise<LocalPrinterDiscovery>;
 }
