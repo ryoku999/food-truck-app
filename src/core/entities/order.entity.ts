@@ -72,6 +72,7 @@ export type OrderFilters = {
   pageSize: number;
   status?: OrderStatus;
   search?: string;
+  ticketNumber?: string;
   view?: "active" | "history";
   from?: string;
   to?: string;
