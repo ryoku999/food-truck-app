@@ -62,6 +62,10 @@ export type OrderPage = {
   items: Order[];
   meta: { page: number; pageSize: number; pageCount: number; total: number };
 };
+export type ReadyOrder = Pick<Order, "id" | "number" | "status"> & {
+  tables: Pick<Order["tables"][number], "id" | "name" | "number">[];
+  items: Pick<OrderItem, "id" | "productNameSnapshot" | "variantNameSnapshot" | "quantity">[];
+};
 export type OrderFilters = {
   createdById?: string;
   page: number;

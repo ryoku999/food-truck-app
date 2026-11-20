@@ -11,7 +11,7 @@ import {
 export const OperationsContext = createContext<OperationsState>("offline");
 export const useOperationsState = () => useContext(OperationsContext);
 
-export function useOperationsConnection(): OperationsState {
+export function useOperationsConnection(notify: () => void): OperationsState {
   const userId = useAuthStore((state) => state.user?.id);
   const role = useAuthStore((state) => state.user?.userRole);
   const client = useQueryClient();
@@ -24,6 +24,16 @@ export function useOperationsConnection(): OperationsState {
     let timer: ReturnType<typeof setTimeout> | undefined;
     let recovery: ReturnType<typeof setTimeout> | undefined;
     const queued = new Map<string, string[]>();
+    const heard = new Set<string>();
+    const alertOnce = (id: string) => {
+      if (heard.has(id)) return;
+      heard.add(id);
+      if (heard.size > 256) {
+        const oldest = heard.values().next().value;
+        if (oldest) heard.delete(oldest);
+      }
+      notify();
+    };
     const queue = (...key: string[]) => {
       queued.set(key.join(":"), key);
       if (timer !== undefined) return;
@@ -46,6 +56,17 @@ export function useOperationsConnection(): OperationsState {
       all();
     });
     socket.on("connect_error", () => setState("offline"));
+    socket.on("production.batch.received", ({ data }: { data: { id: string; area: string } }) => {
+      if (role === data.area && (role === "KITCHEN" || role === "BAR")) {
+        alertOnce(`batch:${data.id}`);
+      }
+    });
+    socket.on("waiter.item.ready", ({ data }: { data: { id: string } }) => {
+      if (role === "WAITER") {
+        queue("orders", "ready-for-service");
+        alertOnce(`ready:${data.id}`);
+      }
+    });
     socket.on("disconnect", (reason) => {
       setState("offline");
       if (reason !== "io server disconnect" || controller.signal.aborted)
@@ -83,7 +104,7 @@ export function useOperationsConnection(): OperationsState {
       socket.removeAllListeners();
       socket.disconnect();
     };
-  }, [client, userId, role]);
+  }, [client, userId, role, notify]);
 
   return userId ? state : "offline";
 }
