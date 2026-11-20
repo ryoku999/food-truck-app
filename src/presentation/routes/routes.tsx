@@ -1,10 +1,16 @@
 import type { UserRole } from "@/core/entities/auth.entity";
 import { roleBasedRedirection } from "@/shared/utils/role-based-redirection";
 import { Suspense } from "react";
-import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
+import {
+  createBrowserRouter,
+  Navigate,
+  Outlet,
+  type RouteObject,
+} from "react-router-dom";
 import AuthGuard from "../guards/AuthGuard";
 import GuestGuard from "../guards/GuestGuard";
 import RoleGuard from "../guards/RoleGuard";
+import { SessionBootstrap } from "../guards/SessionBootstrap";
 import AuthLayout from "../layouts/AuthLayout";
 import RoleLayout from "../layouts/RoleLayout";
 import OperationsProvider from "../layouts/OperationsProvider";
@@ -27,6 +33,7 @@ import {
   UsersPage,
   WaiterOrderPage,
   WaiterOrdersPage,
+  PublicReceiptPage,
 } from "./lazy-routes";
 import { HomeRedirect, RouteMessage } from "./route-pages";
 import { ReportsPage } from "./lazy-routes";
@@ -52,7 +59,7 @@ const panels: Record<UserRole, { title: string; description: string }> = {
   CASHIER: { title: "Caja", description: "Turno, cuentas y cobros." },
 };
 
-export const routes = createBrowserRouter([
+const appRoutes: RouteObject[] = [
   { path: "/", element: <HomeRedirect /> },
   {
     element: (
@@ -154,7 +161,9 @@ export const routes = createBrowserRouter([
                 {
                   path: "catalog/products/:productId",
                   element: (
-                    <Suspense fallback={<p role="status">Cargando producto…</p>}>
+                    <Suspense
+                      fallback={<p role="status">Cargando producto…</p>}
+                    >
                       <ProductEditPage />
                     </Suspense>
                   ),
@@ -304,4 +313,23 @@ export const routes = createBrowserRouter([
     element: <RouteMessage title="403 · No tienes acceso a este panel" />,
   },
   { path: "*", element: <RouteMessage title="404 · Página no encontrada" /> },
+];
+
+export const routes = createBrowserRouter([
+  {
+    path: "/ticket",
+    element: (
+      <Suspense fallback={<p role="status">Cargando ticket…</p>}>
+        <PublicReceiptPage />
+      </Suspense>
+    ),
+  },
+  {
+    element: (
+      <SessionBootstrap>
+        <Outlet />
+      </SessionBootstrap>
+    ),
+    children: appRoutes,
+  },
 ]);

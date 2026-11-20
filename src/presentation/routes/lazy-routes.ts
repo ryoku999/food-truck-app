@@ -60,3 +60,7 @@ export const ReportsPage = lazy(
 export const AuditPage = lazy(
   () => import("@/presentation/features/insights/AuditPage"),
 );
+
+export const PublicReceiptPage = lazy(
+  () => import("../features/printing/PublicReceiptPage"),
+);
