@@ -4,6 +4,7 @@ import { useAuthStore } from "@/infrastructure/storage/auth-storage";
 import { apiError } from "@/shared/utils/api-error";
 import { roleBasedRedirection } from "@/shared/utils/role-based-redirection";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 type Document = { paymentId: string } | { orderId: string; partId: string };
 
@@ -34,10 +35,12 @@ export function BillDocumentButton({
           type="button"
           disabled={disabled || action.isPending}
           onClick={() =>
-            action.mutate((repo) =>
-              "paymentId" in document
-                ? repo.receipt(document.paymentId)
-                : repo.partTicket(document.orderId, document.partId),
+            action.mutate(
+              (repo) =>
+                "paymentId" in document
+                  ? repo.receipt(document.paymentId)
+                  : repo.partTicket(document.orderId, document.partId),
+              { onSuccess: () => toast.success(`Impresión de ${title} enviada a la cola`) },
             )
           }
         >

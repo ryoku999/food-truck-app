@@ -23,6 +23,13 @@ export const usePrinterAgents = () =>
     refetchInterval: 15_000,
     retry: false,
   });
+export const useLocalPrinterHealth = () =>
+  useQuery({
+    queryKey: [...config, "local-health"],
+    queryFn: ({ signal }) => printingService.localHealth(signal),
+    retry: false,
+    refetchInterval: 15_000,
+  });
 export const usePrintJobs = (params: PrintJobFilters) =>
   useQuery({
     queryKey: [...jobs, "list", params],

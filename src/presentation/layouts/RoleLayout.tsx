@@ -2,11 +2,13 @@ import { useLogout } from "@/infrastructure/hooks/use-auth";
 import { useAuthStore } from "@/infrastructure/storage/auth-storage";
 import { NavLink, Outlet } from "react-router-dom";
 import { roleBasedRedirection } from "@/shared/utils/role-based-redirection";
+import { useConfirm } from "../components/use-confirm";
 import ThemeSelector from "../components/ThemeSelector";
 
 export default function RoleLayout({ title }: { title: string }) {
   const user = useAuthStore((state) => state.user);
   const logout = useLogout();
+  const confirmAction = useConfirm();
   const management = user?.userRole === "ADMIN" || user?.userRole === "MANAGER";
   const waiter = user?.userRole === "WAITER";
   const cashLinks = management
@@ -48,7 +50,11 @@ export default function RoleLayout({ title }: { title: string }) {
               type="button"
               className="btn btn-outline min-h-11"
               disabled={logout.isPending}
-              onClick={() => logout.mutate()}
+              onClick={async () => {
+                if (await confirmAction("¿Deseas cerrar sesión?")) {
+                  logout.mutate();
+                }
+              }}
             >
               {logout.isPending ? "Saliendo…" : "Cerrar sesión"}
             </button>

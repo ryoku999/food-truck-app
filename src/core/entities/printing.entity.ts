@@ -43,6 +43,30 @@ export type PrinterAgent = {
   lastSeenAt: string | null;
 };
 export type AgentToken = { id: string; token: string };
+export type LocalPrinterHealth = {
+  ok: boolean;
+  service: string;
+  time: string;
+};
+export type LocalNetworkPrinter = {
+  host: string;
+  port: number;
+  connectionType: "NETWORK_TCP";
+  latencyMs: number;
+};
+export type LocalSystemPrinter = {
+  name: string;
+  portName: string;
+  driverName?: string;
+  status: number;
+};
+export type LocalPrinterDiscovery = {
+  network: LocalNetworkPrinter[];
+  system: LocalSystemPrinter[];
+  requestedNetwork: string;
+  port: number;
+  scannedAt: string;
+};
 export type PrintJob = {
   id: string;
   printerId: string;

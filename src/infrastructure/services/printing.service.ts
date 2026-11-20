@@ -9,6 +9,8 @@ import type {
   PrintJobDetail,
   PrintJobFilters,
   PrintJobPage,
+  LocalPrinterDiscovery,
+  LocalPrinterHealth,
 } from "@/core/entities/printing.entity";
 import type { ApiEnvelope } from "@/shared/interfaces/api-response.interface";
 
@@ -21,12 +23,19 @@ class PrintingService implements PrintingRepository {
     return (await http.get<ApiEnvelope<T>>(url, { signal, params })).data.data;
   }
   private async write<T>(
-    method: "post" | "patch",
+    method: "post" | "patch" | "delete",
     url: string,
     data: object = {},
   ) {
     return (await http.request<ApiEnvelope<T>>({ method, url, data })).data
       .data;
+  }
+  private async local<T>(path: string, init?: RequestInit) {
+    const response = await fetch(`http://127.0.0.1:17890/api${path}`, init);
+    const body = (await response.json()) as T & { error?: string };
+    if (!response.ok)
+      throw new Error(body.error || `API local HTTP ${response.status}`);
+    return body as T;
   }
   printers(signal?: AbortSignal) {
     return this.get<Printer[]>("/printers", signal);
@@ -40,6 +49,9 @@ class PrintingService implements PrintingRepository {
       id ? `/printers/${id}` : "/printers",
       input,
     );
+  }
+  async deletePrinter(id: string) {
+    await this.write<{ id: string; deleted: boolean }>("delete", `/printers/${id}`);
   }
   createAgent(name: string) {
     return this.write<AgentToken>("post", "/printer-agents", { name });
@@ -81,6 +93,16 @@ class PrintingService implements PrintingRepository {
       "post",
       `/orders/${orderId}/bill-parts/${partId}/print-ticket`,
     );
+  }
+  localHealth(signal?: AbortSignal) {
+    return this.local<LocalPrinterHealth>("/health", { signal });
+  }
+  discoverLocal(network: string, port: number) {
+    return this.local<LocalPrinterDiscovery>("/printers/discover", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ network, port }),
+    });
   }
 }
 export const printingService = new PrintingService();

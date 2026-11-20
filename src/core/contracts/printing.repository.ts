@@ -7,12 +7,15 @@ import type {
   PrintJobDetail,
   PrintJobFilters,
   PrintJobPage,
+  LocalPrinterDiscovery,
+  LocalPrinterHealth,
 } from "../entities/printing.entity";
 
 export interface PrintingRepository {
   printers(signal?: AbortSignal): Promise<Printer[]>;
   agents(signal?: AbortSignal): Promise<PrinterAgent[]>;
   savePrinter(input: PrinterInput, id?: string): Promise<Printer>;
+  deletePrinter(id: string): Promise<void>;
   createAgent(name: string): Promise<AgentToken>;
   updateAgent(
     id: string,
@@ -31,4 +34,6 @@ export interface PrintingRepository {
   ticket(orderId: string, printerId?: string): Promise<PrintJob>;
   receipt(paymentId: string): Promise<PrintJob>;
   partTicket(orderId: string, partId: string): Promise<PrintJob>;
+  localHealth(signal?: AbortSignal): Promise<LocalPrinterHealth>;
+  discoverLocal(network: string, port: number): Promise<LocalPrinterDiscovery>;
 }
