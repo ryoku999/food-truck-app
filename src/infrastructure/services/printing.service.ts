@@ -31,7 +31,16 @@ class PrintingService implements PrintingRepository {
       .data;
   }
   private async local<T>(path: string, init?: RequestInit) {
-    const response = await fetch(`http://127.0.0.1:17890/api${path}`, init);
+    const baseURL = import.meta.env.VITE_PRINTER_LOCAL_API_URL?.trim().replace(
+      /\/+$/,
+      "",
+    );
+    if (!baseURL) {
+      throw new Error(
+        "Configura VITE_PRINTER_LOCAL_API_URL para usar la API local de impresión.",
+      );
+    }
+    const response = await fetch(`${baseURL}${path}`, init);
     const body = (await response.json()) as T & { error?: string };
     if (!response.ok)
       throw new Error(body.error || `API local HTTP ${response.status}`);
