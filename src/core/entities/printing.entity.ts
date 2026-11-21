@@ -1,3 +1,5 @@
+import type { OrderType } from "./order.entity";
+
 export const printerPurposes = [
   "KITCHEN",
   "BAR",
@@ -72,6 +74,12 @@ export type PrintJob = {
   id: string;
   printerId: string;
   orderId: string | null;
+  printer?: { name: string };
+  order?: {
+    number: number;
+    type: OrderType;
+    tables: { table: { name: string | null; number: number } }[];
+  } | null;
   type:
     | "KITCHEN_COMMAND"
     | "BAR_COMMAND"
@@ -96,6 +104,8 @@ export type PrintJobDetail = PrintJob & {
 export type PrintJobFilters = {
   status?: PrintStatus;
   orderId?: string;
+  orderNumber?: string;
+  ticketNumber?: string;
   limit: number;
   offset: number;
 };
