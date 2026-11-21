@@ -64,6 +64,28 @@ export default function LocalPage() {
       .toLocaleLowerCase("es-PE")
       .includes(needle),
   );
+  const tableRows =
+    tab === "tables"
+      ? tables.data
+          ?.filter((item) => !area || item.diningArea.id === area)
+          .filter((item) => {
+            const title = item.name || `Mesa ${item.number}`;
+            const description = `${item.diningArea.name} ${item.number} ${item.capacity ?? ""}`;
+            return `${title} ${description}`
+              .toLocaleLowerCase("es-PE")
+              .includes(needle);
+          })
+      : undefined;
+  const tableGroups = tableRows
+    ? Array.from(
+        tableRows.reduce((groups, table) => {
+          const group = groups.get(table.diningArea.id) ?? [];
+          group.push(table);
+          groups.set(table.diningArea.id, group);
+          return groups;
+        }, new Map<string, NonNullable<typeof tableRows>[number][]>()),
+      )
+    : [];
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -174,31 +196,95 @@ export default function LocalPage() {
         </div>
       )}
       {visible?.length === 0 && <p>No hay resultados.</p>}
-      <ul className="grid gap-3 md:grid-cols-2">
-        {visible?.map(({ item, title, description, edit }) => (
-          <li key={item.id} className="card border border-base-300 bg-base-100">
-            <div className="card-body">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="card-title">{title}</h2>
-                <span
-                  className={`badge ${item.active ? "badge-success" : "badge-ghost"}`}
-                >
-                  {item.active ? "Activo" : "Inactivo"}
+      {tab === "tables" ? (
+        <div className="space-y-5">
+          {tableGroups.map(([areaId, areaTables]) => (
+            <section
+              key={areaId}
+              className="overflow-hidden rounded-box border border-primary/30 bg-base-100"
+            >
+              <header className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/20 bg-primary/5 px-5 py-4">
+                <div>
+                  <p className="text-sm font-medium text-primary">Área del local</p>
+                  <h2 className="text-xl font-bold">
+                    {areaTables[0].diningArea.name}
+                  </h2>
+                </div>
+                <span className="badge badge-primary badge-outline">
+                  {areaTables.length} {areaTables.length === 1 ? "mesa" : "mesas"}
                 </span>
-              </div>
-              <p>{description}</p>
-              <div className="card-actions">
-                <button
-                  className="btn btn-outline"
-                  disabled={!!editor}
-                  onClick={() => {
-                    setNotice("");
-                    setEditor(edit);
-                  }}
-                >
-                  Editar
-                </button>
-                {edit.kind !== "tables" && (
+              </header>
+              <ul className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
+                {areaTables.map((item) => (
+                  <li
+                    key={item.id}
+                    className="rounded-box border border-base-300 bg-base-100 p-4 shadow-sm"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm opacity-70">Mesa</p>
+                        <h3 className="text-lg font-bold">
+                          {item.name || `Mesa ${item.number}`}
+                        </h3>
+                      </div>
+                      <span className="badge badge-outline">
+                        N.º {item.number}
+                      </span>
+                    </div>
+                    <p className="mt-3 text-sm opacity-70">
+                      {item.capacity
+                        ? `Capacidad: ${item.capacity} personas`
+                        : "Capacidad no definida"}
+                    </p>
+                    <button
+                      className="btn btn-sm btn-outline mt-4"
+                      disabled={!!editor}
+                      onClick={() => {
+                        setNotice("");
+                        setEditor({ kind: "tables", item });
+                      }}
+                    >
+                      Editar mesa
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {visible?.map(({ item, title, description, edit }) => (
+            <li
+              key={item.id}
+              className={`card border border-base-300 border-l-4 bg-base-100 ${item.active ? "border-l-success" : "border-l-base-300"}`}
+            >
+              <div className="card-body gap-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm opacity-70">
+                      {edit.kind === "production" ? "Área de producción" : "Área del local"}
+                    </p>
+                    <h2 className="card-title">{title}</h2>
+                  </div>
+                  <span
+                    className={`badge ${item.active ? "badge-success" : "badge-ghost"}`}
+                  >
+                    {item.active ? "Activo" : "Inactivo"}
+                  </span>
+                </div>
+                <p className="min-h-12 text-sm opacity-80">{description}</p>
+                <div className="card-actions">
+                  <button
+                    className="btn btn-outline"
+                    disabled={!!editor}
+                    onClick={() => {
+                      setNotice("");
+                      setEditor(edit);
+                    }}
+                  >
+                    Editar
+                  </button>
                   <button
                     className="btn btn-outline"
                     disabled={active.isPending || !!editor}
@@ -224,12 +310,12 @@ export default function LocalPage() {
                   >
                     {item.active ? "Desactivar" : "Activar"}
                   </button>
-                )}
+                </div>
               </div>
-            </div>
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

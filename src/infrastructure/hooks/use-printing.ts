@@ -23,6 +23,13 @@ export const usePrinterAgents = () =>
     refetchInterval: 15_000,
     retry: false,
   });
+export const useLocalPrinterHealth = () =>
+  useQuery({
+    queryKey: [...config, "local-health"],
+    queryFn: ({ signal }) => printingService.localHealth(signal),
+    retry: false,
+    refetchInterval: 15_000,
+  });
 export const usePrintJobs = (params: PrintJobFilters) =>
   useQuery({
     queryKey: [...jobs, "list", params],
@@ -37,11 +44,20 @@ export const usePrintJob = (id: string) =>
   useQuery({
     queryKey: [...jobs, "detail", id],
     queryFn: ({ signal }) => printingService.job(id, signal),
+    enabled: !!id,
     staleTime: 0,
     refetchOnWindowFocus: true,
     retry: false,
     refetchInterval: (query) =>
       query.state.data && printInProgress(query.state.data) ? 4000 : false,
+  });
+export const useRetryPrinters = (id: string, enabled: boolean) =>
+  useQuery({
+    queryKey: [...jobs, "retry-printers", id],
+    queryFn: ({ signal }) => printingService.retryPrinters(id, signal),
+    enabled,
+    staleTime: 0,
+    retry: false,
   });
 export function usePrintAction<T>() {
   const client = useQueryClient();

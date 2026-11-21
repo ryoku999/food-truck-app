@@ -21,15 +21,25 @@ const statuses = [
 
 export default function AccountsPage() {
   const [status, setStatus] = useState<OrderStatus>("SERVED");
+  const [searchBy, setSearchBy] = useState<"order" | "ticket">("order");
   const [input, setInput] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const orders = useOrders({
-    status,
-    search: search || undefined,
-    page,
-    pageSize: 15,
-  });
+  const byTicket = searchBy === "ticket";
+  const validTicket =
+    /^\d{1,10}$/.test(input.trim()) &&
+    Number(input) >= 1 &&
+    Number(input) <= 2147483647;
+  const orders = useOrders(
+    {
+      status: byTicket ? undefined : status,
+      search: byTicket ? undefined : search || undefined,
+      ticketNumber: byTicket ? search || undefined : undefined,
+      page,
+      pageSize: 15,
+    },
+    !byTicket || !!search,
+  );
   const business = useBusiness();
   const money = moneyFormatter(business.data?.currencyCode);
   return (
@@ -44,59 +54,86 @@ export default function AccountsPage() {
         className="flex flex-wrap items-end gap-2"
         onSubmit={(event) => {
           event.preventDefault();
+          if (byTicket && !validTicket) return;
           setSearch(input.trim());
           setPage(1);
         }}
       >
+        {!byTicket && (
+          <label className="grid gap-1">
+            Estado
+            <select
+              className="select"
+              value={status}
+              onChange={(event) => {
+                const selected = statuses.find(
+                  (value) => value === event.target.value,
+                );
+                if (selected) {
+                  setStatus(selected);
+                  setPage(1);
+                }
+              }}
+            >
+              {statuses.map((value) => (
+                <option key={value} value={value}>
+                  {orderLabels[value]}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label className="grid gap-1">
-          Estado
+          Buscar por
           <select
             className="select"
-            value={status}
+            value={searchBy}
             onChange={(event) => {
-              const selected = statuses.find(
-                (value) => value === event.target.value,
-              );
-              if (selected) {
-                setStatus(selected);
-                setPage(1);
-              }
+              setSearchBy(event.target.value === "ticket" ? "ticket" : "order");
+              setInput("");
+              setSearch("");
+              setPage(1);
             }}
           >
-            {statuses.map((value) => (
-              <option key={value} value={value}>
-                {orderLabels[value]}
-              </option>
-            ))}
+            <option value="order">Pedido o cliente</option>
+            <option value="ticket">N.º de ticket</option>
           </select>
         </label>
         <label className="grid grow gap-1 sm:max-w-xs">
-          Pedido o cliente
+          {byTicket ? "Número impreso en el ticket" : "Pedido o cliente"}
           <input
             className="input w-full"
-            maxLength={100}
+            maxLength={byTicket ? 10 : 100}
+            inputMode={byTicket ? "numeric" : undefined}
+            placeholder={byTicket ? "000123" : undefined}
             value={input}
             onChange={(event) => setInput(event.target.value)}
           />
         </label>
-        <button className="btn btn-primary">Buscar</button>
+        <button className="btn btn-primary" disabled={byTicket && !validTicket}>
+          Buscar
+        </button>
         <button
           type="button"
           className="btn btn-outline"
-          disabled={orders.isFetching}
+          disabled={orders.isFetching || (byTicket && !search)}
           onClick={() => void orders.refetch()}
         >
           Actualizar
         </button>
       </form>
-      {orders.isPending && <p role="status">Cargando cuentas…</p>}
+      {orders.isLoading && <p role="status">Cargando cuentas…</p>}
       {orders.isError && (
         <p className="alert alert-error" role="alert">
           {apiError(orders.error, "No se pudieron cargar las cuentas.")}
         </p>
       )}
       {orders.data?.items.length === 0 && (
-        <p>No hay pedidos con este filtro.</p>
+        <p>
+          {byTicket
+            ? "No se encontró un pedido con ese número de ticket."
+            : "No hay pedidos con este filtro."}
+        </p>
       )}
       <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {orders.data?.items.map((order) => (

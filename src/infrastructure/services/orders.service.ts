@@ -8,10 +8,17 @@ import type {
   OrderDetails,
   OrderFilters,
   OrderPage,
+  ReadyOrder,
 } from "@/core/entities/order.entity";
 import type { ApiEnvelope } from "@/shared/interfaces/api-response.interface";
 
 class OrdersService implements OrdersRepository {
+  async readyForService(signal?: AbortSignal) {
+    return (
+      await http.get<ApiEnvelope<ReadyOrder[]>>("/orders/ready-for-service", { signal })
+    ).data.data;
+  }
+
   async list(params: OrderFilters, signal?: AbortSignal) {
     return (
       await http.get<ApiEnvelope<OrderPage>>("/orders", { params, signal })

@@ -2,10 +2,25 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { OrdersRepository } from "@/core/contracts/orders.repository";
 import type { Order, OrderFilters } from "@/core/entities/order.entity";
 import { ordersService } from "../services/orders.service";
+import { useOperationsState } from "./use-operations";
 
 import { useAuthStore } from "../storage/auth-storage";
 
 const orderKey = (id: string) => ["orders", "detail", id] as const;
+export function useReadyOrders() {
+  const userId = useAuthStore((state) => state.user?.id);
+  const connection = useOperationsState();
+  return useQuery({
+    queryKey: ["orders", "ready-for-service", userId],
+    queryFn: ({ signal }) => ordersService.readyForService(signal),
+    enabled: !!userId,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchInterval: connection === "online" ? 60_000 : 15_000,
+    retry: false,
+  });
+}
+
 export const useOrder = (id: string) =>
   useQuery({
     queryKey: orderKey(id),

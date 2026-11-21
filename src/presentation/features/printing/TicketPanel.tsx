@@ -13,6 +13,7 @@ import { apiError } from "@/shared/utils/api-error";
 import { roleBasedRedirection } from "@/shared/utils/role-based-redirection";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import { PrintJobActions, PrintJobBadge } from "./PrintJobStatus";
 
 export function TicketPanel({
@@ -176,6 +177,7 @@ export function TicketPanel({
                     management && printerId ? printerId : undefined,
                   ),
             );
+            toast.success(prebill ? "Precuenta enviada a impresión" : "Ticket enviado a impresión");
             copyId.current = undefined;
           } catch {
             /* The mutation displays the error. */

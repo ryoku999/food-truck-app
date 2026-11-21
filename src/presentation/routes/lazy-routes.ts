@@ -18,6 +18,9 @@ export const TableMapPage = lazy(
 export const CatalogPage = lazy(
   () => import("@/presentation/features/catalog/CatalogPage"),
 );
+export const ProductEditPage = lazy(
+  () => import("@/presentation/features/catalog/ProductEditPage"),
+);
 export const WaiterOrdersPage = lazy(
   () => import("@/presentation/features/waiter/WaiterOrdersPage"),
 );
@@ -56,4 +59,8 @@ export const ReportsPage = lazy(
 );
 export const AuditPage = lazy(
   () => import("@/presentation/features/insights/AuditPage"),
+);
+
+export const PublicReceiptPage = lazy(
+  () => import("../features/printing/PublicReceiptPage"),
 );

@@ -5,11 +5,13 @@ import {
   type Printer,
   type PrinterAgent,
   type PrintJob,
+  type LocalPrinterDiscovery,
 } from "@/core/entities/printing.entity";
 import type { ProductionArea } from "@/core/entities/local.entity";
 import { useProductionAreas } from "@/infrastructure/hooks/use-local";
 import {
   usePrintAction,
+  useLocalPrinterHealth,
   usePrinterAgents,
   usePrinters,
 } from "@/infrastructure/hooks/use-printing";
@@ -21,6 +23,7 @@ import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { z } from "zod";
+import { toast } from "sonner";
 import { printDate, purposeLabels } from "./printing-labels";
 
 const name = z.string().trim().min(1, "Ingresa un nombre").max(100);
@@ -29,6 +32,7 @@ const printerSchema = z
     name,
     purpose: z.enum(printerPurposes),
     connectionType: z.enum(["NETWORK_TCP", "SYSTEM_PRINTER"]),
+    fallbackEnabled: z.boolean(),
     host: z.string().trim().max(253),
     port: z.string().trim(),
     systemName: z.string().trim().max(200),
@@ -38,7 +42,7 @@ const printerSchema = z
     active: z.boolean(),
   })
   .superRefine((fields, context) => {
-    if (fields.connectionType === "NETWORK_TCP") {
+    if (fields.connectionType === "NETWORK_TCP" || fields.fallbackEnabled) {
       if (!fields.host || /[\s/]/.test(fields.host))
         context.addIssue({
           code: "custom",
@@ -55,7 +59,11 @@ const printerSchema = z
           path: ["port"],
           message: "Ingresa un puerto de 1 a 65535.",
         });
-    } else if (!fields.systemName || fields.systemName.startsWith("-")) {
+    }
+    if (
+      (fields.connectionType === "SYSTEM_PRINTER" || fields.fallbackEnabled) &&
+      (!fields.systemName || fields.systemName.startsWith("-"))
+    ) {
       context.addIssue({
         code: "custom",
         path: ["systemName"],
@@ -66,11 +74,13 @@ const printerSchema = z
 
 function PrinterForm({
   item,
+  prefill,
   agents,
   areas,
   close,
 }: {
   item?: Printer;
+  prefill?: Partial<Printer>;
   agents: PrinterAgent[];
   areas: ProductionArea[];
   close: () => void;
@@ -84,16 +94,17 @@ function PrinterForm({
   } = useForm<z.infer<typeof printerSchema>>({
     resolver: zodResolver(printerSchema),
     defaultValues: {
-      name: item?.name ?? "",
+      name: item?.name ?? prefill?.name ?? "",
       purpose: item?.purpose ?? "CASHIER",
       connectionType:
-        item?.connectionType === "SYSTEM_PRINTER"
+        (item?.connectionType ?? prefill?.connectionType) === "SYSTEM_PRINTER"
           ? "SYSTEM_PRINTER"
           : "NETWORK_TCP",
-      host: item?.host ?? "",
-      port: String(item?.port ?? 9100),
-      systemName: item?.systemName ?? "",
-      paperWidth: item?.paperWidth === 58 ? "58" : "80",
+      fallbackEnabled: item?.fallbackEnabled ?? prefill?.fallbackEnabled ?? false,
+      host: item?.host ?? prefill?.host ?? "",
+      port: String(item?.port ?? prefill?.port ?? 9100),
+      systemName: item?.systemName ?? prefill?.systemName ?? "",
+      paperWidth: item?.paperWidth === 58 || prefill?.paperWidth === 58 ? "58" : "80",
       printerAgentId: item?.printerAgentId ?? "",
       productionAreaId: item?.productionAreaId ?? "",
       active: item?.active ?? true,
@@ -101,6 +112,7 @@ function PrinterForm({
   });
   const network =
     useWatch({ control, name: "connectionType" }) === "NETWORK_TCP";
+  const fallbackEnabled = useWatch({ control, name: "fallbackEnabled" });
   return (
     <form
       className="card border border-base-300 bg-base-100"
@@ -113,10 +125,11 @@ function PrinterForm({
                 name: values.name,
                 purpose: values.purpose,
                 connectionType: values.connectionType,
+                fallbackEnabled: values.fallbackEnabled,
                 active: values.active,
-                host: network ? values.host : undefined,
-                port: network ? Number(values.port) : undefined,
-                systemName: network ? undefined : values.systemName,
+                host: network || values.fallbackEnabled ? values.host : undefined,
+                port: network || values.fallbackEnabled ? Number(values.port) : undefined,
+                systemName: !network || values.fallbackEnabled ? values.systemName : undefined,
                 paperWidth: values.paperWidth === "58" ? 58 : 80,
                 printerAgentId: values.printerAgentId || null,
                 productionAreaId: values.productionAreaId || null,
@@ -124,6 +137,7 @@ function PrinterForm({
               item?.id,
             ),
           );
+          toast.success(item ? "Impresora actualizada" : "Impresora registrada");
           close();
         } catch {
           /* Error is rendered from the mutation. */
@@ -150,11 +164,15 @@ function PrinterForm({
             </select>
           </label>
           <label className="grid gap-1">
-            Conexión
+            Conexión principal
             <select className="select w-full" {...register("connectionType")}>
               <option value="NETWORK_TCP">Red TCP</option>
               <option value="SYSTEM_PRINTER">Cola del sistema</option>
             </select>
+          </label>
+          <label className="label min-h-11 self-end">
+            <input type="checkbox" className="checkbox" {...register("fallbackEnabled")} />
+            Usar la otra conexión como respaldo
           </label>
           <label className="grid gap-1">
             Ancho de papel
@@ -163,7 +181,7 @@ function PrinterForm({
               <option value="80">80 mm</option>
             </select>
           </label>
-          {network ? (
+          {(network || fallbackEnabled) && (
             <>
               <label className="grid gap-1">
                 Host o IP
@@ -182,7 +200,8 @@ function PrinterForm({
                 />
               </label>
             </>
-          ) : (
+          )}
+          {(!network || fallbackEnabled) && (
             <label className="grid gap-1">
               Nombre de la cola
               <input className="input w-full" {...register("systemName")} />
@@ -275,6 +294,7 @@ function AgentForm({
             if (item) await repo.updateAgent(item.id, values);
             else token(await repo.createAgent(values.name));
           });
+          toast.success(item ? "Agente actualizado" : "Agente creado");
           close();
         } catch {
           /* Error is rendered from the mutation. */
@@ -320,16 +340,31 @@ export default function PrinterSettingsPage() {
   const jobsPath = `${role ? roleBasedRedirection(role) : ""}/print-jobs`;
   const printers = usePrinters();
   const agents = usePrinterAgents();
+  const localHealth = useLocalPrinterHealth();
   const areas = useProductionAreas();
   const test = usePrintAction<PrintJob>();
+  const deletePrinter = usePrintAction<void>();
   const agentAction = usePrintAction<void>();
+  const discoveryAction = usePrintAction<LocalPrinterDiscovery>();
   const [editor, setEditor] = useState<
-    { kind: "printer"; item?: Printer } | { kind: "agent"; item?: PrinterAgent }
+    | { kind: "printer"; item?: Printer; prefill?: Partial<Printer> }
+    | { kind: "agent"; item?: PrinterAgent }
   >();
   const [secret, setSecret] = useState<AgentToken>();
   const [copy, setCopy] = useState("");
   const [testId, setTestId] = useState<string>();
   const [message, setMessage] = useState("");
+  const [scanOctets, setScanOctets] = useState<[string, string, string]>([
+    "192",
+    "168",
+    "101",
+  ]);
+  const [scanPort, setScanPort] = useState("9100");
+  const [discovery, setDiscovery] = useState<LocalPrinterDiscovery>();
+  const scanNetwork = `${scanOctets[0]}.${scanOctets[1]}.${scanOctets[2]}.x`;
+  const scanNetworkReady = scanOctets.every(
+    (octet) => /^(?:\d{1,3})$/.test(octet) && Number(octet) <= 255,
+  );
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -385,6 +420,7 @@ export default function PrinterSettingsPage() {
         <PrinterForm
           key={editor.item?.id ?? "printer"}
           item={editor.item}
+          prefill={editor.prefill}
           agents={agents.data ?? []}
           areas={areas.data ?? []}
           close={() => setEditor(undefined)}
@@ -411,6 +447,11 @@ export default function PrinterSettingsPage() {
           )}
         </p>
       )}
+      {deletePrinter.isError && (
+        <p role="alert" className="alert alert-error">
+          {apiError(deletePrinter.error, "No se pudo borrar la impresora.")}
+        </p>
+      )}
       {test.data && (
         <div className="alert alert-info" role="status">
           Prueba encolada.
@@ -420,6 +461,119 @@ export default function PrinterSettingsPage() {
         </div>
       )}
       <div className="grid items-start gap-4 xl:grid-cols-2">
+        <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4 xl:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-xl font-semibold">Detectar impresoras locales</h2>
+              <p className="text-sm opacity-75">
+                El agente solo escaneará la red que indiques.
+              </p>
+            </div>
+            <span className={`badge ${localHealth.data?.ok ? "badge-success" : "badge-ghost"}`}>
+              {localHealth.data?.ok ? "API local conectada" : "API local no disponible"}
+            </span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-[1fr_10rem_auto]">
+            <label className="grid gap-1">
+              Red a escanear
+              <span className="flex items-center gap-1">
+                {scanOctets.map((octet, index) => (
+                  <span key={index} className="flex min-w-0 flex-1 items-center gap-1">
+                    <input
+                      className="input w-full text-center"
+                      inputMode="numeric"
+                      maxLength={3}
+                      value={octet}
+                      aria-label={`Octeto ${index + 1}`}
+                      onChange={(event) => {
+                        const value = event.target.value.replace(/\D/g, "");
+                        setScanOctets((previous) => {
+                          const next = [...previous] as [string, string, string];
+                          next[index] = value;
+                          return next;
+                        });
+                      }}
+                    />
+                    {index < 2 && <span aria-hidden="true">.</span>}
+                  </span>
+                ))}
+                <span className="px-1 font-mono font-semibold">.x</span>
+              </span>
+            </label>
+            <label className="grid gap-1">
+              Puerto
+              <input
+                className="input w-full"
+                inputMode="numeric"
+                value={scanPort}
+                onChange={(event) => setScanPort(event.target.value)}
+              />
+            </label>
+            <button
+              className="btn btn-primary self-end"
+              disabled={!localHealth.data?.ok || discoveryAction.isPending || !scanNetworkReady}
+              onClick={() => {
+                setDiscovery(undefined);
+                discoveryAction.mutate(
+                  (repo) => repo.discoverLocal(scanNetwork.trim(), Number(scanPort) || 9100),
+                  {
+                    onSuccess: (result) => {
+                      setDiscovery(result);
+                      toast.success(
+                        `Búsqueda terminada: ${result.network.length} de red y ${result.system.length} de Windows`,
+                      );
+                    },
+                  },
+                );
+              }}
+            >
+              {discoveryAction.isPending ? "Buscando…" : "Buscar"}
+            </button>
+          </div>
+          {localHealth.isError && (
+            <p className="text-sm text-error">
+              Inicia el agente Go en esta computadora para habilitar la búsqueda.
+            </p>
+          )}
+          {discoveryAction.isError && (
+            <p role="alert" className="alert alert-error">
+              {apiError(discoveryAction.error, "No se pudo escanear la red indicada.")}
+            </p>
+          )}
+          {discovery && (
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="space-y-2">
+                <h3 className="font-semibold">Impresoras de red ({discovery.network.length})</h3>
+                {discovery.network.length === 0 && <p className="text-sm opacity-75">No se encontraron impresoras TCP.</p>}
+                {discovery.network.map((printer) => (
+                  <div key={`${printer.host}:${printer.port}`} className="flex flex-wrap items-center justify-between gap-2 rounded border border-base-300 p-3">
+                    <span className="font-mono">{printer.host}:{printer.port} · {printer.latencyMs} ms</span>
+                    <button
+                      className="btn btn-sm btn-outline"
+                      onClick={() => setEditor({ kind: "printer", prefill: { name: `Impresora ${printer.host}`, connectionType: "NETWORK_TCP", host: printer.host, port: printer.port, paperWidth: 80, active: true } })}
+                    >
+                      Guardar impresora
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-semibold">Colas de Windows ({discovery.system.length})</h3>
+                {discovery.system.map((printer) => (
+                  <div key={`${printer.name}:${printer.portName}`} className="flex flex-wrap items-center justify-between gap-2 rounded border border-base-300 p-3">
+                    <span>{printer.name} · {printer.portName}</span>
+                    <button
+                      className="btn btn-sm btn-outline"
+                      onClick={() => setEditor({ kind: "printer", prefill: { name: printer.name, connectionType: "SYSTEM_PRINTER", systemName: printer.name, paperWidth: 80, active: true } })}
+                    >
+                      Guardar impresora
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
         <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4">
           <div className="flex flex-wrap justify-between gap-2">
             <h2 className="text-xl font-semibold">Impresoras</h2>
@@ -480,6 +634,11 @@ export default function PrinterSettingsPage() {
                       : item.systemName}{" "}
                   · {item.paperWidth} mm
                 </p>
+                {item.fallbackEnabled && (
+                  <p className="text-sm">
+                    Respaldo: {item.connectionType === "NETWORK_TCP" ? item.systemName : `${item.host}:${item.port}`}
+                  </p>
+                )}
                 <p>
                   {agent?.name ?? "Sin agente visible"}
                   {area ? ` · ${area.name}` : ""}
@@ -491,6 +650,23 @@ export default function PrinterSettingsPage() {
                     onClick={() => setEditor({ kind: "printer", item })}
                   >
                     Editar
+                  </button>
+                  <button
+                    className="btn btn-outline btn-error"
+                    disabled={!!editor || deletePrinter.isPending || test.isPending}
+                    onClick={async () => {
+                      if (
+                        await confirmAction(
+                          `¿Borrar definitivamente la impresora "${item.name}"? Esta acción no se puede deshacer.`,
+                        )
+                      ) {
+                        deletePrinter.mutate((repo) => repo.deletePrinter(item.id), {
+                          onSuccess: () => toast.success("Impresora eliminada"),
+                        });
+                      }
+                    }}
+                  >
+                    Borrar
                   </button>
                   <button
                     className="btn btn-outline"
@@ -518,7 +694,12 @@ export default function PrinterSettingsPage() {
                       test.mutate(
                         (repo) =>
                           repo.test(item.id, message.trim() || undefined),
-                        { onSuccess: () => setTestId(undefined) },
+                        {
+                          onSuccess: () => {
+                            setTestId(undefined);
+                            toast.success("Prueba enviada a la cola de impresión");
+                          },
+                        },
                       );
                     }}
                   >

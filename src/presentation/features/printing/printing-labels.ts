@@ -3,6 +3,7 @@ import type {
   PrintJob,
   PrintStatus,
 } from "@/core/entities/printing.entity";
+import { typeLabels } from "../waiter/order-labels";
 
 export const purposeLabels: Record<PrinterPurpose, string> = {
   KITCHEN: "Cocina",
@@ -33,3 +34,38 @@ export const printDate = (value: string) =>
     timeStyle: "short",
     timeZone: "America/Lima",
   }).format(new Date(value));
+
+export function printContent(payload: unknown) {
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    !("lines" in payload) ||
+    !Array.isArray(payload.lines)
+  )
+    return [];
+  return payload.lines.filter(
+    (line): line is string => typeof line === "string",
+  );
+}
+
+export function printDocumentNumber(payload: unknown) {
+  if (
+    !payload ||
+    typeof payload !== "object" ||
+    !("headerLines" in payload) ||
+    typeof payload.headerLines !== "number"
+  )
+    return;
+  // Formatted documents put their printed reference right after the header.
+  return /^Nro\. ([A-Z0-9]+)$/.exec(
+    printContent(payload)[payload.headerLines] ?? "",
+  )?.[1];
+}
+
+export function printOrderContext(order: NonNullable<PrintJob["order"]>) {
+  return (
+    order.tables
+      .map(({ table }) => table.name || `Mesa ${table.number}`)
+      .join(", ") || typeLabels[order.type]
+  );
+}
