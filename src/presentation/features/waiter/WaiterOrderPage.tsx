@@ -166,6 +166,8 @@ function OrderScreen({ id }: { id: string }) {
     !["PAID", "CANCELLED"].includes(order.status) &&
     order.createdBy?.id === actor;
   const editable = order.status === "DRAFT" && canAppend;
+  const hasTables = order.tables.length > 0;
+  const orderNumber = order.number;
   const total = money.format(Number(order.total));
   const draftItems = order.items.filter((item) => item.status === "DRAFT");
   async function send() {
@@ -197,6 +199,38 @@ function OrderScreen({ id }: { id: string }) {
       );
     }
   }
+  async function cancelDraft() {
+    if (!editable || action.isPending || query.isError) return;
+    const accepted = await confirmAction({
+      title: `¿Cancelar el borrador #${orderNumber}?`,
+      message: hasTables
+        ? "Se cancelará el pedido y se liberarán las mesas asociadas."
+        : "Se cancelará el pedido y sus productos en borrador.",
+      acceptLabel: "Cancelar borrador",
+    });
+    if (!accepted) return;
+
+    const success = hasTables
+      ? "Borrador cancelado. Las mesas asociadas quedaron disponibles."
+      : "Borrador cancelado.";
+    setFeedback(undefined);
+    try {
+      await action.mutateAsync((repo) =>
+        repo.cancel(id, "Borrador cancelado por el mozo antes del envío."),
+      );
+      setFeedback({ text: success });
+    } catch (error) {
+      const latest = await query.refetch();
+      setFeedback(
+        latest.isSuccess && latest.data.status === "CANCELLED"
+          ? { text: success }
+          : {
+              error: true,
+              text: apiError(error, "No se pudo confirmar la cancelación."),
+            },
+      );
+    }
+  }
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <Link className="btn btn-ghost min-h-11" to="/waiter/orders">
@@ -204,7 +238,7 @@ function OrderScreen({ id }: { id: string }) {
       </Link>
       <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-3xl font-bold">Pedido #{order.number}</h1>
+          <h1 className="text-3xl font-bold">Pedido #{orderNumber}</h1>
           <span className="badge badge-outline">
             {orderLabels[order.status]}
           </span>
@@ -254,6 +288,16 @@ function OrderScreen({ id }: { id: string }) {
               Cambiar mesas
             </button>
           )}
+          <button
+            type="button"
+            className="btn btn-error btn-outline min-h-11"
+            disabled={action.isPending || query.isError}
+            onClick={() => void cancelDraft()}
+          >
+            {hasTables
+              ? "Cancelar borrador y liberar mesas"
+              : "Cancelar borrador"}
+          </button>
         </div>
       )}
       {editable && editor === "details" && (
