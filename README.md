@@ -91,11 +91,12 @@ y la caché de descargas cuando corresponde.
 El archivo de despliegue es `compose.yml` y el servicio es `food-truck-app`.
 
 En Dokploy crea un servicio Docker Compose desde este repositorio y selecciona
-`compose.yml`. En sus variables de entorno define la URL pública de la API,
-incluyendo el prefijo que usa NestJS.
+`compose.yml`. Define la URL pública de la API de NestJS y la URL local del
+agente de impresión Go, ambas con el prefijo `/api`.
 
 ```dotenv
 VITE_API_URL=https://api.tudominio.com/api
+VITE_PRINTER_LOCAL_API_URL=http://127.0.0.1:17890/api
 ```
 
 En Domains asigna el dominio del cliente, por ejemplo `app.tudominio.com`, al servicio
@@ -103,13 +104,15 @@ En Domains asigna el dominio del cliente, por ejemplo `app.tudominio.com`, al se
 Dokploy configura el enrutamiento del dominio. El Compose también publica
 `7000:7000` para acceso por el puerto solicitado.
 
-`VITE_API_URL` se incorpora al JavaScript durante la construcción. Después de
-cambiarla, vuelve a construir y desplegar. Los archivos `.env` quedan fuera de la
+Ambas variables se incorporan al JavaScript durante la construcción. Después de
+cambiarlas, vuelve a construir y desplegar. Los archivos `.env` quedan fuera de la
 imagen. Las variables `VITE_*` son públicas y deben contener configuración del cliente.
+El navegador llama directamente al agente de impresión. Con `127.0.0.1`, el
+agente debe estar ejecutándose en la misma computadora que el navegador.
 
 Axios usa la URL completa, por ejemplo `https://api.tudominio.com/api`.
 Socket.IO deriva el origen `https://api.tudominio.com`, se conecta al namespace
-`/operations` y usa el transporte `/socket.io/`. Basta con `VITE_API_URL`.
+`/operations` y usa el transporte `/socket.io/`.
 Puedes retirar `VITE_API_BASE_URL`, `VITE_WS_BASE_URL` y `VITE_OPERATIONS_URL`
 de la configuración antigua de despliegue.
 
@@ -120,8 +123,8 @@ HTTPS del mismo dominio. El dominio de la API debe enrutar también
 `/socket.io/` y admitir WebSocket. Las imágenes se descargan desde las URLs
 firmadas de RustFS, cuyo endpoint público también debe ser accesible por HTTPS.
 
-Para ejecutar el contenedor desde la carpeta del cliente, define `VITE_API_URL`
-en un archivo `.env` o en el entorno y ejecuta lo siguiente.
+Para ejecutar el contenedor desde la carpeta del cliente, define ambas
+variables en `.env` o en el entorno y ejecuta lo siguiente.
 
 ```sh
 docker compose -f compose.yml up -d --build
