@@ -88,7 +88,7 @@ export function TicketPanel({
                 (item) =>
                   item.active &&
                   item.printerAgentId &&
-                  (item.purpose === "CASHIER" || item.purpose === "GENERAL"),
+                  item.purpose === "CASHIER",
               )
               .map((item) => (
                 <option key={item.id} value={item.id}>

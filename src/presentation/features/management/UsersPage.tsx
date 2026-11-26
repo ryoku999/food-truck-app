@@ -19,8 +19,6 @@ const roles = [
   "ADMIN",
   "MANAGER",
   "WAITER",
-  "KITCHEN",
-  "BAR",
   "CASHIER",
 ] as const;
 const statuses = ["ACTIVE", "INACTIVE"] as const;
@@ -28,8 +26,6 @@ const roleLabels = {
   ADMIN: "Administrador",
   MANAGER: "Gerente",
   WAITER: "Mozo",
-  KITCHEN: "Cocina",
-  BAR: "Barra",
   CASHIER: "Caja",
 };
 const passwordRule = z.string().min(8, "Usa al menos ocho caracteres").max(72);

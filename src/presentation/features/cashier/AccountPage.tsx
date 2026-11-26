@@ -452,7 +452,7 @@ function Account({ id }: { id: string }) {
   const cancelItem = current?.items.find(
     (item) =>
       item.id === cancelItemId &&
-      !["CANCELLED", "SERVED"].includes(item.status),
+      item.status !== "CANCELLED",
   );
   const cancelling =
     payments.data?.items.some(
@@ -555,7 +555,7 @@ function Account({ id }: { id: string }) {
               setSelection(undefined);
               setSelectionNotice("");
               setCancelNotice(
-                "Pedido cancelado. Las mesas asociadas quedaron liberadas.",
+                "Pedido cancelado. Las mesas asociadas quedaron liberadas. Si la comanda pudo salir, avisa a cocina y barra.",
               );
             }}
           />
@@ -618,7 +618,7 @@ function Account({ id }: { id: string }) {
               setSelectionNotice("");
               setPickerVersion((version) => version + 1);
               setCancelNotice(
-                "Producto cancelado. El total del pedido fue recalculado.",
+                "Producto cancelado y total actualizado. Si la comanda pudo salir, comunica el cambio a cocina o barra.",
               );
             }}
           />
@@ -820,7 +820,7 @@ function Account({ id }: { id: string }) {
                       !["DRAFT", "PAID", "CANCELLED"].includes(
                         current.status,
                       ) &&
-                      !["CANCELLED", "SERVED"].includes(item.status) && (
+                      item.status !== "CANCELLED" && (
                         <button
                           type="button"
                           className="btn btn-error btn-outline min-h-11"

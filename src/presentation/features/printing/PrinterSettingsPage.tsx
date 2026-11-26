@@ -7,8 +7,6 @@ import {
   type PrintJob,
   type LocalPrinterDiscovery,
 } from "@/core/entities/printing.entity";
-import type { ProductionArea } from "@/core/entities/local.entity";
-import { useProductionAreas } from "@/infrastructure/hooks/use-local";
 import {
   usePrintAction,
   useLocalPrinterHealth,
@@ -38,7 +36,6 @@ const printerSchema = z
     systemName: z.string().trim().max(200),
     paperWidth: z.enum(["58", "80"]),
     printerAgentId: z.string(),
-    productionAreaId: z.string(),
     active: z.boolean(),
   })
   .superRefine((fields, context) => {
@@ -76,13 +73,11 @@ function PrinterForm({
   item,
   prefill,
   agents,
-  areas,
   close,
 }: {
   item?: Printer;
   prefill?: Partial<Printer>;
   agents: PrinterAgent[];
-  areas: ProductionArea[];
   close: () => void;
 }) {
   const action = usePrintAction<Printer>();
@@ -106,7 +101,6 @@ function PrinterForm({
       systemName: item?.systemName ?? prefill?.systemName ?? "",
       paperWidth: item?.paperWidth === 58 || prefill?.paperWidth === 58 ? "58" : "80",
       printerAgentId: item?.printerAgentId ?? "",
-      productionAreaId: item?.productionAreaId ?? "",
       active: item?.active ?? true,
     },
   });
@@ -132,7 +126,7 @@ function PrinterForm({
                 systemName: !network || values.fallbackEnabled ? values.systemName : undefined,
                 paperWidth: values.paperWidth === "58" ? 58 : 80,
                 printerAgentId: values.printerAgentId || null,
-                productionAreaId: values.productionAreaId || null,
+                productionAreaId: null,
               },
               item?.id,
             ),
@@ -156,7 +150,7 @@ function PrinterForm({
           <label className="grid gap-1">
             Propósito
             <select className="select w-full" {...register("purpose")}>
-              {printerPurposes.map((key) => (
+              {printerPurposes.filter((key) => key === "CASHIER" || key === "GENERAL" || key === item?.purpose).map((key) => (
                 <option key={key} value={key}>
                   {purposeLabels[key]}
                 </option>
@@ -215,17 +209,6 @@ function PrinterForm({
                 <option key={agent.id} value={agent.id}>
                   {agent.name}
                   {agent.active ? "" : " (inactivo)"}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-1">
-            Área de producción
-            <select className="select w-full" {...register("productionAreaId")}>
-              <option value="">Sin área específica</option>
-              {areas.map((area) => (
-                <option key={area.id} value={area.id}>
-                  {area.name}
                 </option>
               ))}
             </select>
@@ -341,7 +324,6 @@ export default function PrinterSettingsPage() {
   const printers = usePrinters();
   const agents = usePrinterAgents();
   const localHealth = useLocalPrinterHealth();
-  const areas = useProductionAreas();
   const test = usePrintAction<PrintJob>();
   const deletePrinter = usePrintAction<void>();
   const agentAction = usePrintAction<void>();
@@ -422,7 +404,6 @@ export default function PrinterSettingsPage() {
           item={editor.item}
           prefill={editor.prefill}
           agents={agents.data ?? []}
-          areas={areas.data ?? []}
           close={() => setEditor(undefined)}
         />
       )}
@@ -579,25 +560,18 @@ export default function PrinterSettingsPage() {
             <h2 className="text-xl font-semibold">Impresoras</h2>
             <button
               className="btn btn-primary"
-              disabled={!!editor || !agents.isSuccess || !areas.isSuccess}
+              disabled={!!editor || !agents.isSuccess}
               onClick={() => setEditor({ kind: "printer" })}
             >
               Nueva impresora
             </button>
           </div>
+          <p>Configura una impresora activa de comandas para cocina y barra y asigna un agente.</p>
           {printers.isPending && <p role="status">Cargando impresoras…</p>}
           {printers.isError && (
             <div role="alert" className="alert alert-error">
               No se pudieron cargar las impresoras.
               <button className="btn" onClick={() => void printers.refetch()}>
-                Reintentar
-              </button>
-            </div>
-          )}
-          {areas.isError && (
-            <div role="alert" className="alert alert-error">
-              No se pudieron cargar las áreas.
-              <button className="btn" onClick={() => void areas.refetch()}>
                 Reintentar
               </button>
             </div>
@@ -608,9 +582,6 @@ export default function PrinterSettingsPage() {
           {printers.data?.map((item) => {
             const agent = agents.data?.find(
               (agent) => agent.id === item.printerAgentId,
-            );
-            const area = areas.data?.find(
-              (area) => area.id === item.productionAreaId,
             );
             return (
               <div
@@ -641,12 +612,11 @@ export default function PrinterSettingsPage() {
                 )}
                 <p>
                   {agent?.name ?? "Sin agente visible"}
-                  {area ? ` · ${area.name}` : ""}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <button
                     className="btn btn-outline"
-                    disabled={!!editor || !agents.isSuccess || !areas.isSuccess}
+                    disabled={!!editor || !agents.isSuccess}
                     onClick={() => setEditor({ kind: "printer", item })}
                   >
                     Editar

@@ -4,8 +4,6 @@ import { NavLink, Outlet } from "react-router-dom";
 import { roleBasedRedirection } from "@/shared/utils/role-based-redirection";
 import { useConfirm } from "../components/use-confirm";
 import ThemeSelector from "../components/ThemeSelector";
-import { useOperationSoundControls } from "@/infrastructure/hooks/use-operation-sound";
-import ReadyOrderNotices from "../features/waiter/ReadyOrderNotices";
 
 export default function RoleLayout({ title }: { title: string }) {
   const user = useAuthStore((state) => state.user);
@@ -13,8 +11,6 @@ export default function RoleLayout({ title }: { title: string }) {
   const confirmAction = useConfirm();
   const management = user?.userRole === "ADMIN" || user?.userRole === "MANAGER";
   const waiter = user?.userRole === "WAITER";
-  const sound = useOperationSoundControls();
-  const hasSound = waiter || user?.userRole === "KITCHEN" || user?.userRole === "BAR";
   const cashLinks = management
     ? [
         ["/cashier/session", "Turno de caja"],
@@ -49,12 +45,6 @@ export default function RoleLayout({ title }: { title: string }) {
             </div>
           </NavLink>
           <div className="flex flex-wrap items-center gap-2">
-            {hasSound && sound && (
-              <button type="button" className="btn btn-outline min-h-11"
-                disabled={sound.state === "testing"} onClick={sound.toggle}>
-                {sound.state === "testing" ? "Probando sonido…" : sound.state === "on" ? "Silenciar avisos" : "Activar sonido"}
-              </button>
-            )}
             <ThemeSelector />
             <button
               type="button"
@@ -74,17 +64,7 @@ export default function RoleLayout({ title }: { title: string }) {
               No se pudo cerrar sesión. Vuelve a intentar.
             </p>
           )}
-          {hasSound && sound?.state === "blocked" && (
-            <p role="status" className="basis-full text-sm">
-              No se pudo reproducir la alerta. Pulsa Activar sonido para intentarlo otra vez.
-            </p>
-          )}
         </div>
-        {waiter && (
-          <div className="mx-auto max-w-7xl px-4 sm:px-8">
-            <ReadyOrderNotices />
-          </div>
-        )}
       </header>
       <div
         className={
@@ -106,8 +86,6 @@ export default function RoleLayout({ title }: { title: string }) {
                     ["/users", "Usuarios"],
                     ["/local", "Local"],
                     ["/catalog", "Carta"],
-                    ["/kitchen", "Cocina"],
-                    ["/bar", "Barra"],
                   ]
                 : []),
               ...cashLinks,

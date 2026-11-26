@@ -101,6 +101,14 @@ export type PrintJob = {
 export type PrintJobDetail = PrintJob & {
   items: { printJobId: string; orderItemId: string }[];
 };
+export type CommandPrintJob = Pick<PrintJob, "id" | "status"> & {
+  type: "KITCHEN_COMMAND" | "BAR_COMMAND";
+  roundNumber: number | null;
+};
+export type RetryPrintJob = {
+  printerId?: string;
+  confirmedMissingPaper?: boolean;
+};
 export type PrintJobFilters = {
   status?: PrintStatus;
   orderId?: string;

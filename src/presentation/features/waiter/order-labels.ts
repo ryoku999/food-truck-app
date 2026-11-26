@@ -7,18 +7,12 @@ import type {
 export const orderLabels: Record<OrderStatus, string> = {
   DRAFT: "Borrador",
   SENT: "Enviado",
-  IN_PROGRESS: "En preparación",
-  READY: "Listo",
-  SERVED: "Entregado",
   PAID: "Pagado",
   CANCELLED: "Cancelado",
 };
 export const itemLabels: Record<OrderItemStatus, string> = {
   DRAFT: "Borrador",
-  PENDING: "Pendiente",
-  PREPARING: "Preparando",
-  READY: "Listo",
-  SERVED: "Entregado",
+  SENT: "Enviado",
   CANCELLED: "Cancelado",
 };
 export const typeLabels: Record<OrderType, string> = {

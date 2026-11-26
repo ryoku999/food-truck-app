@@ -11,16 +11,13 @@ import {
 } from "../waiter/order-labels";
 
 const statuses = [
-  "SERVED",
-  "READY",
-  "IN_PROGRESS",
   "SENT",
   "PAID",
   "CANCELLED",
 ] as const;
 
 export default function AccountsPage() {
-  const [status, setStatus] = useState<OrderStatus>("SERVED");
+  const [status, setStatus] = useState<OrderStatus>("SENT");
   const [searchBy, setSearchBy] = useState<"order" | "ticket">("order");
   const [input, setInput] = useState("");
   const [search, setSearch] = useState("");

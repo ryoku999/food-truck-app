@@ -8,17 +8,11 @@ import type {
   OrderDetails,
   OrderFilters,
   OrderPage,
-  ReadyOrder,
 } from "@/core/entities/order.entity";
 import type { ApiEnvelope } from "@/shared/interfaces/api-response.interface";
+import type { CommandPrintJob } from "@/core/entities/printing.entity";
 
 class OrdersService implements OrdersRepository {
-  async readyForService(signal?: AbortSignal) {
-    return (
-      await http.get<ApiEnvelope<ReadyOrder[]>>("/orders/ready-for-service", { signal })
-    ).data.data;
-  }
-
   async list(params: OrderFilters, signal?: AbortSignal) {
     return (
       await http.get<ApiEnvelope<OrderPage>>("/orders", { params, signal })
@@ -27,6 +21,14 @@ class OrdersService implements OrdersRepository {
   async get(id: string, signal?: AbortSignal) {
     return (await http.get<ApiEnvelope<Order>>(`/orders/${id}`, { signal }))
       .data.data;
+  }
+  async commandPrintJobs(id: string, signal?: AbortSignal) {
+    return (
+      await http.get<ApiEnvelope<CommandPrintJob[]>>(
+        `/orders/${id}/command-print-jobs`,
+        { signal },
+      )
+    ).data.data;
   }
   async create(input: CreateOrder) {
     return (await http.post<ApiEnvelope<Order>>("/orders", input)).data.data;

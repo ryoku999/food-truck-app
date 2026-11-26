@@ -27,7 +27,6 @@ import {
   PrinterSettingsPage,
   PrintJobPage,
   PrintJobsPage,
-  ProductionBoard,
   ProductEditPage,
   TableMapPage,
   UsersPage,
@@ -48,14 +47,6 @@ const panels: Record<UserRole, { title: string; description: string }> = {
     description: "Seguimiento de la operación y resultados del negocio.",
   },
   WAITER: { title: "Mozos", description: "Mesas, carta y pedidos del local." },
-  KITCHEN: {
-    title: "Cocina",
-    description: "Comandas y estados de preparación de cocina.",
-  },
-  BAR: {
-    title: "Barra",
-    description: "Comandas y estados de preparación de bebidas.",
-  },
   CASHIER: { title: "Caja", description: "Turno, cuentas y cobros." },
 };
 
@@ -107,12 +98,6 @@ const appRoutes: RouteObject[] = [
                 <Navigate to="session" replace />
               ) : management ? (
                 <Navigate to="reports" replace />
-              ) : role === "KITCHEN" || role === "BAR" ? (
-                <Suspense fallback={<p role="status">Cargando tablero…</p>}>
-                  <ProductionBoard
-                    area={role === "KITCHEN" ? "kitchen" : "bar"}
-                  />
-                </Suspense>
               ) : (
                 <section className="card border border-base-300 bg-base-100">
                   <div className="card-body">
@@ -165,22 +150,6 @@ const appRoutes: RouteObject[] = [
                       fallback={<p role="status">Cargando producto…</p>}
                     >
                       <ProductEditPage />
-                    </Suspense>
-                  ),
-                },
-                {
-                  path: "kitchen",
-                  element: (
-                    <Suspense fallback={<p role="status">Cargando cocina…</p>}>
-                      <ProductionBoard key="kitchen" area="kitchen" />
-                    </Suspense>
-                  ),
-                },
-                {
-                  path: "bar",
-                  element: (
-                    <Suspense fallback={<p role="status">Cargando barra…</p>}>
-                      <ProductionBoard key="bar" area="bar" />
                     </Suspense>
                   ),
                 },

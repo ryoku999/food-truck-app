@@ -9,6 +9,7 @@ import type {
   PrintJobPage,
   LocalPrinterDiscovery,
   LocalPrinterHealth,
+  RetryPrintJob,
 } from "../entities/printing.entity";
 
 export interface PrintingRepository {
@@ -24,7 +25,7 @@ export interface PrintingRepository {
   rotateAgent(id: string): Promise<AgentToken>;
   jobs(params: PrintJobFilters, signal?: AbortSignal): Promise<PrintJobPage>;
   job(id: string, signal?: AbortSignal): Promise<PrintJobDetail>;
-  retry(id: string, printerId?: string): Promise<PrintJob>;
+  retry(id: string, input?: RetryPrintJob): Promise<PrintJob>;
   retryPrinters(id: string, signal?: AbortSignal): Promise<Pick<Printer, "id" | "name">[]>;
   test(id: string, message?: string): Promise<PrintJob>;
   prebill(

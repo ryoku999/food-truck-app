@@ -3,9 +3,9 @@ import type { TableArea } from "./local.entity";
 export const orderTypes = ["DINE_IN", "TAKEAWAY", "DELIVERY"] as const;
 export type OrderType = (typeof orderTypes)[number];
 export type OrderStatus =
-  "DRAFT" | "SENT" | "IN_PROGRESS" | "READY" | "SERVED" | "PAID" | "CANCELLED";
+  "DRAFT" | "SENT" | "PAID" | "CANCELLED";
 export type OrderItemStatus =
-  "DRAFT" | "PENDING" | "PREPARING" | "READY" | "SERVED" | "CANCELLED";
+  "DRAFT" | "SENT" | "CANCELLED";
 export interface OrderItem {
   id: string;
   productId: string | null;
@@ -61,10 +61,6 @@ export interface Order {
 export type OrderPage = {
   items: Order[];
   meta: { page: number; pageSize: number; pageCount: number; total: number };
-};
-export type ReadyOrder = Pick<Order, "id" | "number" | "status"> & {
-  tables: Pick<Order["tables"][number], "id" | "name" | "number">[];
-  items: Pick<OrderItem, "id" | "productNameSnapshot" | "variantNameSnapshot" | "quantity">[];
 };
 export type OrderFilters = {
   createdById?: string;
