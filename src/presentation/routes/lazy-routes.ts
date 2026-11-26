@@ -30,9 +30,6 @@ export const NewWaiterOrderPage = lazy(
 export const WaiterOrderPage = lazy(
   () => import("@/presentation/features/waiter/WaiterOrderPage"),
 );
-export const ProductionBoard = lazy(
-  () => import("@/presentation/features/production/ProductionBoard"),
-);
 export const CashSessionPage = lazy(
   () => import("@/presentation/features/cashier/CashSessionPage"),
 );

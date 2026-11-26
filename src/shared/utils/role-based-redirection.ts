@@ -8,12 +8,8 @@ export const roleBasedRedirection = (role: UserRole) => {
       return "/manager";
     case "WAITER":
       return "/waiter";
-    case "KITCHEN":
-      return "/kitchen";
     case "CASHIER":
       return "/cashier";
-    case "BAR":
-      return "/bar";
     default:
       return "/login";
   }

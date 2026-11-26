@@ -11,6 +11,7 @@ import type {
   PrintJobPage,
   LocalPrinterDiscovery,
   LocalPrinterHealth,
+  RetryPrintJob,
 } from "@/core/entities/printing.entity";
 import type { ApiEnvelope } from "@/shared/interfaces/api-response.interface";
 
@@ -77,8 +78,8 @@ class PrintingService implements PrintingRepository {
   job(id: string, signal?: AbortSignal) {
     return this.get<PrintJobDetail>(`/print-jobs/${id}`, signal);
   }
-  retry(id: string, printerId?: string) {
-    return this.write<PrintJob>("post", `/print-jobs/${id}/retry`, { printerId });
+  retry(id: string, input: RetryPrintJob = {}) {
+    return this.write<PrintJob>("post", `/print-jobs/${id}/retry`, input);
   }
   retryPrinters(id: string, signal?: AbortSignal) {
     return this.get<Pick<Printer, "id" | "name">[]>(`/print-jobs/${id}/retry-printers`, signal);

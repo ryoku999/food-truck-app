@@ -2,25 +2,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { OrdersRepository } from "@/core/contracts/orders.repository";
 import type { Order, OrderFilters } from "@/core/entities/order.entity";
 import { ordersService } from "../services/orders.service";
+import { useAuthStore } from "../storage/auth-storage";
 import { useOperationsState } from "./use-operations";
 
-import { useAuthStore } from "../storage/auth-storage";
-
 const orderKey = (id: string) => ["orders", "detail", id] as const;
-export function useReadyOrders() {
-  const userId = useAuthStore((state) => state.user?.id);
-  const connection = useOperationsState();
-  return useQuery({
-    queryKey: ["orders", "ready-for-service", userId],
-    queryFn: ({ signal }) => ordersService.readyForService(signal),
-    enabled: !!userId,
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    refetchInterval: connection === "online" ? 60_000 : 15_000,
-    retry: false,
-  });
-}
-
 export const useOrder = (id: string) =>
   useQuery({
     queryKey: orderKey(id),
@@ -29,6 +14,19 @@ export const useOrder = (id: string) =>
     refetchInterval: 15_000,
     retry: false,
   });
+
+export function useCommandPrintJobs(id: string, enabled: boolean) {
+  const userId = useAuthStore((state) => state.user?.id);
+  const connection = useOperationsState();
+  return useQuery({
+    queryKey: ["command-print-jobs", id, userId],
+    queryFn: ({ signal }) => ordersService.commandPrintJobs(id, signal),
+    enabled: enabled && !!userId,
+    refetchInterval: connection === "online" ? 60_000 : 10_000,
+    retry: false,
+  });
+}
+
 export function useOrders(params: OrderFilters, enabled = true) {
   const userId = useAuthStore((store) => store.user?.id);
   return useQuery({
@@ -49,6 +47,7 @@ export function useOrderAction() {
       await client.cancelQueries({ queryKey: orderKey(order.id) });
       client.setQueryData(orderKey(order.id), order);
       void client.invalidateQueries({ queryKey: ["orders", "list"] });
+      void client.invalidateQueries({ queryKey: ["command-print-jobs", order.id] });
       void client.invalidateQueries({ queryKey: ["local", "map"] });
       void client.invalidateQueries({
         queryKey: ["cashier", "payments", order.id],
@@ -81,7 +80,8 @@ export function useCancelOrder() {
         client.invalidateQueries({ queryKey: ["orders"] }),
         client.invalidateQueries({ queryKey: ["cashier"] }),
         client.invalidateQueries({ queryKey: ["local", "map"] }),
-        client.invalidateQueries({ queryKey: ["production"] }),
+        client.invalidateQueries({ queryKey: ["print-jobs"] }),
+        client.invalidateQueries({ queryKey: ["command-print-jobs"] }),
       ]),
   });
 }

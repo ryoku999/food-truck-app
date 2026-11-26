@@ -3,8 +3,6 @@ import { io } from "socket.io-client";
 export type OperationsState = "connecting" | "online" | "offline";
 export const operationEvents = [
   "order.sent",
-  "kitchen.item.created",
-  "bar.item.created",
   "order-item.status.changed",
   "order.status.changed",
   "table.status.changed",

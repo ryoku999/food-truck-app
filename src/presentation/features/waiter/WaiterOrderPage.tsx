@@ -3,12 +3,17 @@ import type { Product } from "@/core/entities/catalog.entity";
 import type { Order } from "@/core/entities/order.entity";
 import { useMenu } from "@/infrastructure/hooks/use-catalog";
 import { useBusiness } from "@/infrastructure/hooks/use-management";
-import { useOrder, useOrderAction } from "@/infrastructure/hooks/use-orders";
+import {
+  useCommandPrintJobs,
+  useOrder,
+  useOrderAction,
+} from "@/infrastructure/hooks/use-orders";
 import { useAuthStore } from "@/infrastructure/storage/auth-storage";
 import { apiError } from "@/shared/utils/api-error";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AddItemForm, EditItemForm } from "./OrderItemForms";
+import { PrintJobBadge } from "../printing/PrintJobStatus";
 import { OrderForm, OrderTablesForm } from "./OrderForms";
 import {
   itemLabels,
@@ -144,6 +149,8 @@ function OrderScreen({ id }: { id: string }) {
   const [confirm, setConfirm] = useState(false);
   const [feedback, setFeedback] = useState<{ text: string; error?: boolean }>();
   const order = query.data;
+  const showPrinting = !!order?.sentAt && order.createdBy?.id === actor;
+  const printing = useCommandPrintJobs(id, showPrinting);
   if (!order)
     return (
       <div className="space-y-3">
@@ -177,7 +184,7 @@ function OrderScreen({ id }: { id: string }) {
     try {
       await action.mutateAsync((repo) => repo.send(id));
       setConfirm(false);
-      setFeedback({ text: "Comanda enviada." });
+      setFeedback({ text: "Envío registrado." });
     } catch (error) {
       setConfirm(false);
       const latest = await query.refetch();
@@ -269,6 +276,34 @@ function OrderScreen({ id }: { id: string }) {
         >
           {feedback.text}
         </p>
+      )}
+      {showPrinting && (
+        <section className="space-y-2" aria-label="Impresión de comandas">
+          <h2 className="text-xl font-semibold">Impresión de comandas</h2>
+          {printing.isPending && <p role="status">Consultando impresión…</p>}
+          {printing.isError && (
+            <p role="alert">No se pudo actualizar el estado de impresión.</p>
+          )}
+          {printing.isSuccess && printing.data.length === 0 && (
+            <p>Este pedido no generó comandas de cocina o barra.</p>
+          )}
+          {!!printing.data?.length && (
+            <ul className="space-y-1" aria-live="polite">
+              {printing.data.map((job) => (
+                <li key={job.id} className="flex flex-wrap items-center gap-2">
+                  <span>
+                    {job.type === "KITCHEN_COMMAND" ? "Cocina" : "Barra"}
+                    {job.roundNumber ? ` · Ronda ${job.roundNumber}` : ""}
+                  </span>
+                  <PrintJobBadge job={job} />
+                </li>
+              ))}
+            </ul>
+          )}
+          {printing.data?.some((job) => job.status === "FAILED") && (
+            <p className="text-error">Pide a caja que revise la comanda fallida.</p>
+          )}
+        </section>
       )}
       {editable && !editor && !confirm && (
         <div className="flex flex-wrap gap-2">

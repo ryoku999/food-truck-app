@@ -6,10 +6,10 @@ import type {
 import { typeLabels } from "../waiter/order-labels";
 
 export const purposeLabels: Record<PrinterPurpose, string> = {
-  KITCHEN: "Cocina",
-  BAR: "Barra",
+  KITCHEN: "Cocina (configuración anterior)",
+  BAR: "Barra (configuración anterior)",
   CASHIER: "Caja",
-  GENERAL: "General",
+  GENERAL: "Comandas de cocina y barra",
 };
 export const printStatusLabels: Record<PrintStatus, string> = {
   PENDING: "Pendiente",

@@ -4,9 +4,10 @@ import { usePrintAction, useRetryPrinters } from "@/infrastructure/hooks/use-pri
 import { useState } from "react";
 import { toast } from "sonner";
 import { apiError } from "@/shared/utils/api-error";
+import { useConfirm } from "@/presentation/components/use-confirm";
 import { printStatusLabels } from "./printing-labels";
 
-export function PrintJobBadge({ job }: { job: PrintJob }) {
+export function PrintJobBadge({ job }: { job: Pick<PrintJob, "status"> }) {
   const badge =
     job.status === "PRINTED"
       ? "badge-success"
@@ -28,10 +29,14 @@ export function PrintJobActions({
   blocked?: boolean;
 }) {
   const retry = usePrintAction<PrintJob>();
+  const confirmAction = useConfirm();
   const [choosing, setChoosing] = useState(false);
   const [printerId, setPrinterId] = useState("");
   const safe = canRetryPrintJob(job);
   const canSwitchPrinter = safe && job.type === "PREBILL";
+  const canConfirmMissingPaper =
+    (job.type === "KITCHEN_COMMAND" || job.type === "BAR_COMMAND") &&
+    job.error?.startsWith("UNCERTAIN:");
   const printers = useRetryPrinters(job.id, choosing && canSwitchPrinter && !blocked);
   if (job.status !== "FAILED") return null;
   const description = job.error?.replace(/^(RETRYABLE|UNCERTAIN):\s*/, "");
@@ -51,6 +56,25 @@ export function PrintJobActions({
           El resultado puede ser incierto. Revisa la salida del agente antes de
           generar otro trabajo.
         </p>
+      )}
+      {canConfirmMissingPaper && (
+        <button
+          type="button"
+          className="btn btn-outline min-h-11"
+          disabled={blocked || retry.isPending}
+          onClick={async () => {
+            const confirmed = await confirmAction({
+              title: "¿Confirmas que la comanda no salió?",
+              message: "Verifica el papel y coordina con el área antes de volver a enviar la comanda.",
+              acceptLabel: "Confirmar y reintentar",
+            });
+            if (confirmed) {
+              retry.mutate((repo) => repo.retry(job.id, { confirmedMissingPaper: true }));
+            }
+          }}
+        >
+          {retry.isPending ? "Reencolando…" : "Reintentar si no salió papel"}
+        </button>
       )}
       {canSwitchPrinter && (
         <>
@@ -90,7 +114,7 @@ export function PrintJobActions({
                     type="button"
                     className="btn btn-primary min-h-11"
                     disabled={blocked || retry.isPending || !printers.data.some((printer) => printer.id === printerId)}
-                    onClick={() => retry.mutate((repo) => repo.retry(job.id, printerId), {
+                    onClick={() => retry.mutate((repo) => repo.retry(job.id, { printerId }), {
                       onSuccess: () => {
                         setChoosing(false);
                         setPrinterId("");

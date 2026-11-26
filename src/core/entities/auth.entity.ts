@@ -1,5 +1,5 @@
 export type UserRole =
-  "ADMIN" | "MANAGER" | "CASHIER" | "WAITER" | "KITCHEN" | "BAR";
+  "ADMIN" | "MANAGER" | "CASHIER" | "WAITER";
 
 // login request
 export interface LoginReq {
