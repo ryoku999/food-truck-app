@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "./presentation/components/theme-provider";
 import { useTheme } from "./presentation/components/theme-context";
+import { PwaControls } from "./presentation/components/pwa-controls";
 
 function AppToaster() {
   const { theme } = useTheme();
@@ -25,7 +26,9 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <RouterProvider router={routes} />
+        <PwaControls>
+          <RouterProvider router={routes} />
+        </PwaControls>
         <AppToaster />
         <ReactQueryDevtools initialIsOpen={false} />
       </ThemeProvider>

@@ -8,6 +8,10 @@ const queryClient = new QueryClient({
     },
   }),
   defaultOptions: {
+    mutations: {
+      networkMode: "always",
+      retry: false,
+    },
     queries: {
       staleTime: 5 * 60 * 1000,
       retry: 3,
