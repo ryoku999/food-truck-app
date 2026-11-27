@@ -1,3 +1,9 @@
+import { Alert } from "@/presentation/components/ui/alert";
+import { Button, buttonVariants } from "@/presentation/components/ui/button";
+import { Label } from "@/presentation/components/ui/label";
+import { Input } from "@/presentation/components/ui/input";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Badge } from "@/presentation/components/ui/badge";
 import { useConfirm } from "@/presentation/components/use-confirm";
 import type {
   CatalogEditResource,
@@ -54,15 +60,15 @@ function MenuPreview() {
   if (menu.isPending) return <p role="status">Cargando carta disponible…</p>;
   if (menu.isError)
     return (
-      <div role="alert" className="alert alert-error">
+      <Alert role="alert" variant="destructive">
         {apiError(menu.error, "No se pudo cargar la carta disponible.")}
-        <button className="btn btn-sm" onClick={() => void menu.refetch()}>
+        <Button type="submit" variant="outline" size="sm" onClick={() => void menu.refetch()}>
           Reintentar
-        </button>
-      </div>
+        </Button>
+      </Alert>
     );
   return (
-    <div className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4">
+    <div className="space-y-3 rounded-xl border border-border bg-card p-4">
       {menu.data.categories.length === 0 && (
         <p>No hay productos disponibles.</p>
       )}
@@ -73,7 +79,7 @@ function MenuPreview() {
             {category.products.map((product) => (
               <li
                 key={product.id}
-                className="space-y-1 rounded-box border border-base-300 p-3"
+                className="space-y-1 rounded-xl border border-border p-3"
               >
                 <p className="font-semibold">
                   {product.name} · {product.basePrice}
@@ -119,14 +125,13 @@ function ModifierAssignment({
     product.modifierGroups.map((group) => group.id),
   );
   return (
-    <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4">
+    <section className="space-y-3 rounded-xl border border-border bg-card p-4">
       <h3 className="text-lg font-semibold">Modificadores asignados</h3>
       {groups.length === 0 && <p>Crea un grupo en la pestaña Modificadores.</p>}
       {groups.map((group) => (
-        <label key={group.id} className="label flex min-h-11 justify-start">
+        <Label key={group.id} className="min-h-11 flex justify-start">
           <input
             type="checkbox"
-            className="checkbox"
             checked={selected.includes(group.id)}
             disabled={actions.isPending}
             onChange={(event) => {
@@ -140,10 +145,10 @@ function ModifierAssignment({
           />{" "}
           {group.name}
           {group.active ? "" : " (inactivo)"}
-        </label>
+        </Label>
       ))}
-      <button
-        className="btn btn-primary"
+      <Button
+        type="submit"
         disabled={
           actions.isPending ||
           selected.join() ===
@@ -154,11 +159,11 @@ function ModifierAssignment({
         }
       >
         Guardar asignación
-      </button>
+      </Button>
       {actions.isError && (
-        <p role="alert" className="alert alert-error">
+        <Alert role="alert" variant="destructive">
           {apiError(actions.error, "No se pudo guardar la asignación.")}
-        </p>
+        </Alert>
       )}
       {actions.isSuccess && <p role="status">Asignación guardada.</p>}
     </section>
@@ -242,13 +247,13 @@ export default function CatalogPage() {
     item: Named & { active: boolean },
   ) {
     return (
-      <button
-        className="btn btn-sm btn-outline"
+      <Button
+        type="submit" variant="outline" size="sm"
         disabled={actions.isPending || !!editor}
         onClick={() => flag(resource, item, "active", !item.active)}
       >
         {item.active ? "Desactivar" : "Activar"}
-      </button>
+      </Button>
     );
   }
   function availability(
@@ -256,13 +261,13 @@ export default function CatalogPage() {
     item: Named & { available: boolean },
   ) {
     return (
-      <button
-        className="btn btn-sm btn-outline"
+      <Button
+        type="submit" variant="outline" size="sm"
         disabled={actions.isPending || !!editor}
         onClick={() => flag(resource, item, "available", !item.available)}
       >
         {item.available ? "Marcar agotado" : "Marcar disponible"}
-      </button>
+      </Button>
     );
   }
   function editMain(create: boolean) {
@@ -446,16 +451,16 @@ export default function CatalogPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold">Carta</h1>
-        <button
-          className="btn btn-outline"
+        <h1 className="text-[1.75rem] font-semibold tracking-tight sm:text-4xl">Carta</h1>
+        <Button
+          type="submit" variant="outline"
           aria-expanded={preview}
           onClick={() => setPreview((value) => !value)}
         >
           {preview ? "Ocultar vista previa" : "Ver carta disponible"}
-        </button>
-        <button
-          className="btn btn-primary"
+        </Button>
+        <Button
+          type="submit"
           disabled={
             !!editor ||
             actions.isPending ||
@@ -469,16 +474,16 @@ export default function CatalogPage() {
             : section === "products"
               ? "Nuevo producto"
               : "Nuevo grupo"}
-        </button>
+        </Button>
       </div>
       {preview && <MenuPreview />}
       <nav className="flex flex-wrap gap-2" aria-label="Secciones de la carta">
         {(Object.keys(sections) as CatalogResource[]).map((key) => (
-          <button
+          <Button
             key={key}
             aria-pressed={key === section}
             disabled={actions.isPending}
-            className={`btn ${key === section ? "btn-primary" : "btn-outline"}`}
+            type="submit" variant={key === section ? "default" : "outline"}
             onClick={() => {
               setSection(key);
               setSelected(undefined);
@@ -490,12 +495,11 @@ export default function CatalogPage() {
             }}
           >
             {sections[key]}
-          </button>
+          </Button>
         ))}
       </nav>
       <div className="flex flex-wrap gap-3">
-        <input
-          className="input"
+        <Input
           aria-label="Buscar en la carta"
           placeholder="Buscar por nombre"
           maxLength={100}
@@ -508,8 +512,7 @@ export default function CatalogPage() {
           }}
         />
         {section === "products" && (
-          <select
-            className="select"
+          <NativeSelect
             aria-label="Filtrar por categoría"
             value={categoryId}
             onChange={(event) => {
@@ -526,7 +529,7 @@ export default function CatalogPage() {
                 {row.name}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         )}
       </div>
       {editor && (
@@ -539,42 +542,42 @@ export default function CatalogPage() {
         />
       )}
       {notice && (
-        <p className="alert alert-success" role="status">
+        <Alert variant="success" role="status">
           {notice}
-        </p>
+        </Alert>
       )}
       {(areas.isError || categories.isError || groups.isError) && (
-        <p className="text-error" role="alert">
+        <p className="text-destructive" role="alert">
           Algunos datos de referencia no se pudieron cargar.
         </p>
       )}
       {actions.isError && !editor && (
-        <p className="alert alert-error" role="alert">
+        <Alert variant="destructive" role="alert">
           {apiError(actions.error, "No se pudo completar la operación.")}
-        </p>
+        </Alert>
       )}
       <div className="grid gap-4 xl:grid-cols-[minmax(12rem,1fr)_minmax(0,2fr)]">
         <section className="space-y-2">
           {list.isPending && <p role="status">Cargando carta…</p>}
           {list.isError && (
-            <div className="alert alert-error" role="alert">
+            <Alert variant="destructive" role="alert">
               {apiError(list.error, "No se pudo cargar la carta.")}
-              <button
-                className="btn btn-sm"
+              <Button
+                type="submit" variant="outline" size="sm"
                 onClick={() => void list.refetch()}
               >
                 Reintentar
-              </button>
-            </div>
+              </Button>
+            </Alert>
           )}
           {rows?.length === 0 && <p>Sin resultados.</p>}
           {rows?.map((row) => (
-            <button
+            <Button
               key={row.id}
               type="button"
               disabled={!!editor || actions.isPending}
               aria-pressed={selected === row.id}
-              className={`btn h-auto min-h-11 w-full justify-between py-2 text-left whitespace-normal ${selected === row.id ? "btn-primary" : "btn-outline"}`}
+              variant={selected === row.id ? "default" : "outline"} className="h-auto min-h-11 w-full justify-between py-2 text-left whitespace-normal"
               onClick={() => {
                 setSelected(row.id);
                 setComponentSearch("");
@@ -595,33 +598,33 @@ export default function CatalogPage() {
               </span>
               <span className="flex shrink-0 items-center gap-2">
                 {section === "categories" && "sortOrder" in row && (
-                  <span className="badge badge-outline">#{row.sortOrder}</span>
+                  <Badge variant="outline">#{row.sortOrder}</Badge>
                 )}
-                <span className="badge badge-ghost">
+                <Badge variant="ghost">
                   {row.active ? "Activo" : "Inactivo"}
-                </span>
+                </Badge>
               </span>
-            </button>
+            </Button>
           ))}
           {section === "products" && products.data && (
             <div className="flex flex-wrap items-center gap-2">
-              <button
-                className="btn btn-sm"
+              <Button
+                type="submit" variant="outline" size="sm"
                 disabled={page <= 1}
                 onClick={() => setPage(page - 1)}
               >
                 Anterior
-              </button>
+              </Button>
               <span>
                 Pág. {page} de {Math.max(1, products.data.meta.pageCount)}
               </span>
-              <button
-                className="btn btn-sm"
+              <Button
+                type="submit" variant="outline" size="sm"
                 disabled={page >= products.data.meta.pageCount}
                 onClick={() => setPage(page + 1)}
               >
                 Siguiente
-              </button>
+              </Button>
             </div>
           )}
         </section>
@@ -634,12 +637,12 @@ export default function CatalogPage() {
             <p role="status">Cargando producto…</p>
           )}
           {section === "products" && detail.isError && (
-            <p className="alert alert-error" role="alert">
+            <Alert variant="destructive" role="alert">
               {apiError(detail.error, "No se pudo cargar el producto.")}
-            </p>
+            </Alert>
           )}
           {current && (
-            <div className="space-y-2 rounded-box border border-base-300 bg-base-100 p-4">
+            <div className="space-y-2 rounded-xl border border-border bg-card p-4">
               <h2 className="text-xl font-bold">{current.name}</h2>
               {current.description && <p>{current.description}</p>}
               {product && (
@@ -651,20 +654,20 @@ export default function CatalogPage() {
               <div className="flex flex-wrap gap-2">
                 {section === "products" && product ? (
                   <Link
-                    className="btn btn-outline btn-sm"
+                    className={buttonVariants({ variant: "outline", size: "sm" })}
                     to={`products/${product.id}`}
                     relative="path"
                   >
                     Editar producto
                   </Link>
                 ) : (
-                  <button
-                    className="btn btn-outline btn-sm"
+                  <Button
+                    type="submit" variant="outline" size="sm"
                     disabled={!!editor || actions.isPending}
                     onClick={() => editMain(false)}
                   >
                     Editar
-                  </button>
+                  </Button>
                 )}
                 {toggle(section, current)}
                 {product && availability("products", product)}
@@ -679,7 +682,7 @@ export default function CatalogPage() {
             />
           )}
           {section === "modifier-groups" && group && (
-            <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4">
+            <section className="space-y-3 rounded-xl border border-border bg-card p-4">
               <h3 className="text-lg font-semibold">Opciones</h3>
               <p>
                 {group.selectionType === "SINGLE"
@@ -687,30 +690,30 @@ export default function CatalogPage() {
                   : "Selección múltiple"}{" "}
                 · {group.minSelections} a {group.maxSelections ?? "sin límite"}
               </p>
-              <button
-                className="btn btn-sm btn-primary"
+              <Button
+                type="submit" size="sm"
                 disabled={!!editor || actions.isPending}
                 onClick={() => editOption()}
               >
                 Nueva opción
-              </button>
+              </Button>
               {group.options.map((item) => (
                 <div
                   key={item.id}
-                  className="flex flex-wrap items-center gap-2 border-t border-base-300 pt-2"
+                  className="flex flex-wrap items-center gap-2 border-t border-border pt-2"
                 >
                   <p className="grow">
                     {item.name} · {item.priceDelta} ·{" "}
                     {item.active ? "Activa" : "Inactiva"} ·{" "}
                     {item.available ? "Disponible" : "Agotada"}
                   </p>
-                  <button
-                    className="btn btn-outline btn-sm"
+                  <Button
+                    type="submit" variant="outline" size="sm"
                     disabled={!!editor || actions.isPending}
                     onClick={() => editOption(item)}
                   >
                     Editar
-                  </button>
+                  </Button>
                   {toggle("modifier-options", item)}
                   {availability("modifier-options", item)}
                 </div>
@@ -724,32 +727,32 @@ export default function CatalogPage() {
                 resource="products"
                 item={product}
               />
-              <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4">
+              <section className="space-y-3 rounded-xl border border-border bg-card p-4">
                 <h3 className="text-lg font-semibold">Variantes</h3>
-                <button
-                  className="btn btn-sm btn-primary"
+                <Button
+                  type="submit" size="sm"
                   disabled={!!editor || actions.isPending}
                   onClick={() => editVariant()}
                 >
                   Nueva variante
-                </button>
+                </Button>
                 {product.variants.map((item) => (
                   <div
                     key={item.id}
-                    className="flex flex-wrap items-center gap-2 border-t border-base-300 pt-2"
+                    className="flex flex-wrap items-center gap-2 border-t border-border pt-2"
                   >
                     <p className="grow">
                       {item.name} · {item.price} ·{" "}
                       {item.active ? "Activa" : "Inactiva"} ·{" "}
                       {item.available ? "Disponible" : "Agotada"}
                     </p>
-                    <button
-                      className="btn btn-sm btn-outline"
+                    <Button
+                      type="submit" variant="outline" size="sm"
                       disabled={!!editor || actions.isPending}
                       onClick={() => editVariant(item)}
                     >
                       Editar
-                    </button>
+                    </Button>
                     {availability("product-variants", item)}
                   </div>
                 ))}
@@ -761,19 +764,18 @@ export default function CatalogPage() {
                   groups={groups.data}
                 />
               )}
-              <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4">
+              <section className="space-y-3 rounded-xl border border-border bg-card p-4">
                 <h3 className="text-lg font-semibold">Combos</h3>
-                <button
-                  className="btn btn-sm btn-primary"
+                <Button
+                  type="submit" size="sm"
                   disabled={!!editor || actions.isPending}
                   onClick={() => editCombo()}
                 >
                   Nuevo grupo de combo
-                </button>
+                </Button>
                 {product.comboGroups.length > 0 && (
                   <div className="flex flex-wrap items-center gap-2">
-                    <input
-                      className="input"
+                    <Input
                       aria-label="Buscar producto para el combo"
                       placeholder="Buscar componente"
                       value={componentSearch}
@@ -783,25 +785,25 @@ export default function CatalogPage() {
                         setComponentPage(1);
                       }}
                     />
-                    <button
-                      className="btn btn-sm"
+                    <Button
+                      type="submit" variant="outline" size="sm"
                       disabled={componentPage <= 1}
                       onClick={() => setComponentPage(componentPage - 1)}
                     >
                       Anterior
-                    </button>
-                    <button
-                      className="btn btn-sm"
+                    </Button>
+                    <Button
+                      type="submit" variant="outline" size="sm"
                       disabled={
                         componentPage >= (components.data?.meta.pageCount ?? 0)
                       }
                       onClick={() => setComponentPage(componentPage + 1)}
                     >
                       Siguiente
-                    </button>
+                    </Button>
                     <span>Pág. {componentPage}</span>
                     {components.isError && (
-                      <p role="alert" className="text-error">
+                      <p role="alert" className="text-destructive">
                         No se pudieron cargar los componentes.
                       </p>
                     )}
@@ -810,22 +812,22 @@ export default function CatalogPage() {
                 {product.comboGroups.map((combo) => (
                   <div
                     key={combo.id}
-                    className="space-y-2 rounded-box border border-base-300 p-3"
+                    className="space-y-2 rounded-xl border border-border p-3"
                   >
                     <h4 className="font-semibold">
                       {combo.name} · {combo.minSelections} a{" "}
                       {combo.maxSelections}
                     </h4>
                     <div className="flex flex-wrap gap-2">
-                      <button
-                        className="btn btn-sm btn-outline"
+                      <Button
+                        type="submit" variant="outline" size="sm"
                         disabled={!!editor || actions.isPending}
                         onClick={() => editCombo(combo)}
                       >
                         Editar grupo
-                      </button>
-                      <button
-                        className="btn btn-sm btn-outline"
+                      </Button>
+                      <Button
+                        type="submit" variant="outline" size="sm"
                         disabled={
                           !!editor ||
                           actions.isPending ||
@@ -836,27 +838,27 @@ export default function CatalogPage() {
                         onClick={() => editComboItem(combo)}
                       >
                         Agregar componente
-                      </button>
+                      </Button>
                     </div>
                     {combo.items.map((item) => (
                       <div
                         key={item.id}
-                        className="flex flex-wrap items-center gap-2 border-t border-base-300 pt-2"
+                        className="flex flex-wrap items-center gap-2 border-t border-border pt-2"
                       >
                         <p className="grow">
                           {item.productNameSnapshot} · Adicional{" "}
                           {item.additionalPrice} ·{" "}
                           {item.active ? "Activo" : "Inactivo"}
                         </p>
-                        <button
-                          className="btn btn-sm btn-outline"
+                        <Button
+                          type="submit" variant="outline" size="sm"
                           disabled={!!editor || actions.isPending}
                           onClick={() => editComboItem(combo, item)}
                         >
                           Editar
-                        </button>
-                        <button
-                          className="btn btn-sm btn-outline"
+                        </Button>
+                        <Button
+                          type="submit" variant="outline" size="sm"
                           disabled={!!editor || actions.isPending}
                           onClick={async () => {
                             if (
@@ -870,7 +872,7 @@ export default function CatalogPage() {
                           }}
                         >
                           Quitar
-                        </button>
+                        </Button>
                       </div>
                     ))}
                   </div>

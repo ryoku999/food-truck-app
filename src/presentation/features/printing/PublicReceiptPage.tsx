@@ -28,9 +28,9 @@ export default function PublicReceiptPage() {
 
   const data = receipt.data;
   return (
-    <main className="min-h-dvh bg-base-200 px-4 py-8 text-base-content">
+    <main className="min-h-dvh bg-muted px-4 py-8 text-foreground">
       <meta name="robots" content="noindex,nofollow" />
-      <article className="mx-auto max-w-lg rounded-box border border-base-300 bg-base-100 p-5 shadow-sm sm:p-8">
+      <article className="mx-auto max-w-lg rounded-xl border border-border bg-card p-5 shadow-sm sm:p-8">
         {!data ? (
           <p role="status" className="text-center">
             {token && receipt.isPending
@@ -55,7 +55,7 @@ export default function PublicReceiptPage() {
             <div className="mt-5 space-y-1 font-mono text-sm">
               {data.lines.slice(data.headerLines).map((line, index) =>
                 /^-{3,}$/.test(line) ? (
-                  <hr key={index} className="my-3 border-dashed border-base-300" />
+                  <hr key={index} className="my-3 border-dashed border-border" />
                 ) : (
                   <p key={index} className="whitespace-pre-wrap [overflow-wrap:anywhere]">{line}</p>
                 ),

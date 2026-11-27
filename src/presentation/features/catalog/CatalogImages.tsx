@@ -1,3 +1,7 @@
+import { Input } from "@/presentation/components/ui/input";
+import { Button } from "@/presentation/components/ui/button";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Badge } from "@/presentation/components/ui/badge";
 import { useConfirm } from "@/presentation/components/use-confirm";
 import type { CatalogImage, Named } from "@/core/entities/catalog.entity";
 import { useCatalogActions } from "@/infrastructure/hooks/use-catalog";
@@ -58,14 +62,14 @@ export function CatalogImages({
     }
   }
   return (
-    <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4">
+    <section className="space-y-3 rounded-xl border border-border bg-card p-4">
       <h3 className="text-lg font-semibold">Imágenes de {item.name}</h3>
       <div className="flex flex-wrap gap-2">
-        <input
+        <Input
           ref={input}
           type="file"
           aria-label="Imagen para la carta"
-          className="file-input max-w-full"
+          className="max-w-full"
           accept="image/jpeg,image/png,image/webp"
           disabled={busy}
           onChange={(event) => {
@@ -74,8 +78,8 @@ export function CatalogImages({
             setFile(event.target.files?.[0]);
           }}
         />
-        <button
-          className="btn btn-primary"
+        <Button
+          type="submit"
           disabled={!file || busy || actions.isPending}
           onClick={() => void attach()}
         >
@@ -84,12 +88,12 @@ export function CatalogImages({
             : uploaded
               ? "Reintentar asociación"
               : "Subir imagen"}
-        </button>
+        </Button>
       </div>
       {(error || actions.isError) && (
-        <p role="alert" className="alert alert-error">
+        <Alert role="alert" variant="destructive">
           {error || apiError(actions.error, "No se pudo actualizar la imagen.")}
-        </p>
+        </Alert>
       )}
       <ul className="grid gap-3 sm:grid-cols-2">
         {item.images.map((image) => {
@@ -99,11 +103,11 @@ export function CatalogImages({
           return (
             <li
               key={image.fileId}
-              className="space-y-2 rounded-box border border-base-300 p-3"
+              className="space-y-2 rounded-xl border border-border p-3"
             >
               {broken[image.fileId] === url ? (
-                <button
-                  className="btn btn-outline"
+                <Button
+                  type="submit" variant="outline"
                   onClick={() => {
                     void filesService
                       .url(image.fileId)
@@ -128,12 +132,12 @@ export function CatalogImages({
                   }}
                 >
                   Renovar vista
-                </button>
+                </Button>
               ) : (
                 <img
                   src={url}
                   alt={image.originalName}
-                  className="h-36 w-full rounded-box bg-base-200 object-contain"
+                  className="h-36 w-full rounded-xl bg-muted object-contain"
                   onError={() =>
                     setBroken((previous) => ({
                       ...previous,
@@ -145,13 +149,13 @@ export function CatalogImages({
               <p className="break-all">
                 {image.originalName}{" "}
                 {image.isPrimary && (
-                  <span className="badge badge-primary">Principal</span>
+                  <Badge>Principal</Badge>
                 )}
               </p>
               <div className="flex flex-wrap gap-2">
                 {resource === "products" && !image.isPrimary && (
-                  <button
-                    className="btn btn-sm btn-outline"
+                  <Button
+                    type="submit" variant="outline" size="sm"
                     disabled={busy || actions.isPending}
                     onClick={() =>
                       actions.mutate((service) =>
@@ -166,10 +170,10 @@ export function CatalogImages({
                     }
                   >
                     Hacer principal
-                  </button>
+                  </Button>
                 )}
-                <button
-                  className="btn btn-sm btn-outline"
+                <Button
+                  type="submit" variant="outline" size="sm"
                   disabled={busy || actions.isPending}
                   onClick={async () => {
                     if (await confirmAction("¿Quitar esta imagen de la carta?"))
@@ -184,7 +188,7 @@ export function CatalogImages({
                   }}
                 >
                   Quitar
-                </button>
+                </Button>
               </div>
             </li>
           );

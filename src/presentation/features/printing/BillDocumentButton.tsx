@@ -1,3 +1,5 @@
+import { Button, buttonVariants } from "@/presentation/components/ui/button";
+import { Alert } from "@/presentation/components/ui/alert";
 import type { PrintJob } from "@/core/entities/printing.entity";
 import { usePrintAction, usePrintJob } from "@/infrastructure/hooks/use-printing";
 import { useRef } from "react";
@@ -28,14 +30,14 @@ export function BillDocumentButton({
     <div className="space-y-2">
       {jobId && role ? (
         <Link
-          className="btn btn-outline min-h-11"
+          className={buttonVariants({ variant: "outline", className: "min-h-11" })}
           to={`${roleBasedRedirection(role)}/print-jobs/${jobId}`}
         >
           Ver estado del {title}
         </Link>
       ) : (
-        <button
-          className="btn btn-outline min-h-11"
+        <Button
+          variant="outline" className="min-h-11"
           type="button"
           disabled={disabled || action.isPending}
           onClick={() =>
@@ -49,12 +51,12 @@ export function BillDocumentButton({
           }
         >
           {action.isPending ? "Consultando cola…" : `Imprimir ${title}`}
-        </button>
+        </Button>
       )}
       {part && job.data?.status === "PRINTED" && (
-        <button
+        <Button
           type="button"
-          className="btn btn-outline min-h-11"
+          variant="outline" className="min-h-11"
           disabled={disabled || action.isPending || job.isError}
           onClick={() => {
             const id = (copyId.current ??= globalThis.crypto.randomUUID());
@@ -67,12 +69,12 @@ export function BillDocumentButton({
           }}
         >
           {action.isPending ? "Encolando…" : "Reimprimir ticket de la parte"}
-        </button>
+        </Button>
       )}
       {action.isError && (
-        <p role="alert" className="alert alert-error">
+        <Alert role="alert" variant="destructive">
           {apiError(action.error, "No se pudo preparar la impresión.")}
-        </p>
+        </Alert>
       )}
     </div>
   );

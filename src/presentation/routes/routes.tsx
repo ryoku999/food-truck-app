@@ -1,3 +1,4 @@
+import { Card, CardContent } from "@/presentation/components/ui/card";
 import type { UserRole } from "@/core/entities/auth.entity";
 import { roleBasedRedirection } from "@/shared/utils/role-based-redirection";
 import { Suspense } from "react";
@@ -11,12 +12,11 @@ import AuthGuard from "../guards/AuthGuard";
 import GuestGuard from "../guards/GuestGuard";
 import RoleGuard from "../guards/RoleGuard";
 import { SessionBootstrap } from "../guards/SessionBootstrap";
-import AuthLayout from "../layouts/AuthLayout";
-import RoleLayout from "../layouts/RoleLayout";
 import OperationsProvider from "../layouts/OperationsProvider";
 import {
   AccountPage,
   AccountsPage,
+  AuthLayout,
   BusinessPage,
   CashSessionPage,
   CashSettingsPage,
@@ -33,9 +33,10 @@ import {
   WaiterOrderPage,
   WaiterOrdersPage,
   PublicReceiptPage,
+  ReportsPage,
+  RoleLayout,
 } from "./lazy-routes";
-import { HomeRedirect, RouteMessage } from "./route-pages";
-import { ReportsPage } from "./lazy-routes";
+import { HomeRedirect, RouteLoading, RouteMessage } from "./route-pages";
 
 const panels: Record<UserRole, { title: string; description: string }> = {
   ADMIN: {
@@ -55,7 +56,9 @@ const appRoutes: RouteObject[] = [
   {
     element: (
       <GuestGuard>
-        <AuthLayout />
+        <Suspense fallback={<RouteLoading>Cargando acceso…</RouteLoading>}>
+          <AuthLayout />
+        </Suspense>
       </GuestGuard>
     ),
     children: [
@@ -85,7 +88,9 @@ const appRoutes: RouteObject[] = [
         path: roleBasedRedirection(role),
         element: (
           <RoleGuard allowedRoles={[role]}>
-            <RoleLayout title={panel.title} />
+            <Suspense fallback={<RouteLoading>Cargando panel…</RouteLoading>}>
+              <RoleLayout title={panel.title} />
+            </Suspense>
           </RoleGuard>
         ),
         children: [
@@ -99,12 +104,12 @@ const appRoutes: RouteObject[] = [
               ) : management ? (
                 <Navigate to="reports" replace />
               ) : (
-                <section className="card border border-base-300 bg-base-100">
-                  <div className="card-body">
-                    <h1 className="text-3xl font-bold">{panel.title}</h1>
+                <Card as="section">
+                  <CardContent>
+                    <h1 className="text-[1.75rem] font-semibold tracking-tight sm:text-4xl">{panel.title}</h1>
                     <p>{panel.description}</p>
-                  </div>
-                </section>
+                  </CardContent>
+                </Card>
               ),
           },
           ...(role === "ADMIN" || role === "MANAGER"

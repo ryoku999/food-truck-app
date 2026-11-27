@@ -1,3 +1,9 @@
+import { Button, buttonVariants } from "@/presentation/components/ui/button";
+import { Input } from "@/presentation/components/ui/input";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Badge } from "@/presentation/components/ui/badge";
+import { Card, CardContent } from "@/presentation/components/ui/card";
 import { useConfirm } from "@/presentation/components/use-confirm";
 import {
   useDiningAreas,
@@ -89,8 +95,8 @@ export default function LocalPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold">Local</h1>
-        <Link className="btn btn-outline" to="../table-map" relative="path">
+        <h1 className="text-[1.75rem] font-semibold tracking-tight sm:text-4xl">Local</h1>
+        <Link className={buttonVariants({ variant: "outline" })} to="../table-map" relative="path">
           Ver mapa
         </Link>
       </div>
@@ -99,9 +105,9 @@ export default function LocalPage() {
         className="flex flex-wrap gap-2"
       >
         {(Object.keys(tabs) as (keyof typeof tabs)[]).map((key) => (
-          <button
+          <Button
             key={key}
-            className={`btn ${tab === key ? "btn-primary" : "btn-outline"}`}
+            type="submit" variant={tab === key ? "default" : "outline"}
             aria-pressed={tab === key}
             onClick={() => {
               setEditor(undefined);
@@ -112,14 +118,14 @@ export default function LocalPage() {
             }}
           >
             {tabs[key]}
-          </button>
+          </Button>
         ))}
       </nav>
-      <div className="flex flex-wrap items-end gap-3 rounded-box border border-base-300 bg-base-100 p-4">
+      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card p-4">
         <label className="grid gap-1">
           Buscar
-          <input
-            className="input w-full"
+          <Input
+            className="w-full"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -127,8 +133,7 @@ export default function LocalPage() {
         {tab === "tables" && (
           <label className="grid gap-1">
             Área
-            <select
-              className="select"
+            <NativeSelect
               value={area}
               onChange={(event) => setArea(event.target.value)}
             >
@@ -138,11 +143,11 @@ export default function LocalPage() {
                   {item.name}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
         )}
-        <button
-          className="btn btn-primary"
+        <Button
+          type="submit"
           disabled={
             !!editor ||
             (tab === "tables" && !dining.data?.some((item) => item.active))
@@ -153,7 +158,7 @@ export default function LocalPage() {
           }}
         >
           {tab === "tables" ? "Nueva mesa" : "Nueva área"}
-        </button>
+        </Button>
       </div>
       {tab === "tables" &&
         dining.isSuccess &&
@@ -161,14 +166,14 @@ export default function LocalPage() {
           <p>Crea o activa un área del local para registrar mesas.</p>
         )}
       {tab === "tables" && dining.isError && (
-        <p role="alert" className="text-error">
+        <p role="alert" className="text-destructive">
           No se pudieron cargar las áreas del local.
         </p>
       )}
       {notice && (
-        <p className="alert alert-success" role="status">
+        <Alert variant="success" role="status">
           {notice}
-        </p>
+        </Alert>
       )}
       {editor && editor.kind === tab && (
         <LocalForm
@@ -182,18 +187,18 @@ export default function LocalPage() {
         />
       )}
       {active.isError && (
-        <p className="alert alert-error" role="alert">
+        <Alert variant="destructive" role="alert">
           {apiError(active.error, "No se pudo actualizar el estado.")}
-        </p>
+        </Alert>
       )}
       {query.isPending && <p role="status">Cargando…</p>}
       {query.isError && (
-        <div className="alert alert-error" role="alert">
+        <Alert variant="destructive" role="alert">
           {apiError(query.error, "No se pudo cargar el listado.")}
-          <button className="btn" onClick={() => void query.refetch()}>
+          <Button type="submit" variant="outline" onClick={() => void query.refetch()}>
             Reintentar
-          </button>
-        </div>
+          </Button>
+        </Alert>
       )}
       {visible?.length === 0 && <p>No hay resultados.</p>}
       {tab === "tables" ? (
@@ -201,7 +206,7 @@ export default function LocalPage() {
           {tableGroups.map(([areaId, areaTables]) => (
             <section
               key={areaId}
-              className="overflow-hidden rounded-box border border-primary/30 bg-base-100"
+              className="overflow-hidden rounded-xl border border-primary/30 bg-card"
             >
               <header className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/20 bg-primary/5 px-5 py-4">
                 <div>
@@ -210,15 +215,15 @@ export default function LocalPage() {
                     {areaTables[0].diningArea.name}
                   </h2>
                 </div>
-                <span className="badge badge-primary badge-outline">
+                <Badge variant="outline">
                   {areaTables.length} {areaTables.length === 1 ? "mesa" : "mesas"}
-                </span>
+                </Badge>
               </header>
               <ul className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
                 {areaTables.map((item) => (
                   <li
                     key={item.id}
-                    className="rounded-box border border-base-300 bg-base-100 p-4 shadow-sm"
+                    className="rounded-xl border border-border bg-card p-4 shadow-sm"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -227,17 +232,17 @@ export default function LocalPage() {
                           {item.name || `Mesa ${item.number}`}
                         </h3>
                       </div>
-                      <span className="badge badge-outline">
+                      <Badge variant="outline">
                         N.º {item.number}
-                      </span>
+                      </Badge>
                     </div>
                     <p className="mt-3 text-sm opacity-70">
                       {item.capacity
                         ? `Capacidad: ${item.capacity} personas`
                         : "Capacidad no definida"}
                     </p>
-                    <button
-                      className="btn btn-sm btn-outline mt-4"
+                    <Button
+                      type="submit" variant="outline" size="sm" className="mt-4"
                       disabled={!!editor}
                       onClick={() => {
                         setNotice("");
@@ -245,7 +250,7 @@ export default function LocalPage() {
                       }}
                     >
                       Editar mesa
-                    </button>
+                    </Button>
                   </li>
                 ))}
               </ul>
@@ -255,28 +260,28 @@ export default function LocalPage() {
       ) : (
         <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {visible?.map(({ item, title, description, edit }) => (
-            <li
+            <Card
               key={item.id}
-              className={`card border border-base-300 border-l-4 bg-base-100 ${item.active ? "border-l-success" : "border-l-base-300"}`}
+              as="li" className={`border-l-4 ${item.active ? "border-l-success" : "border-l-border"}`}
             >
-              <div className="card-body gap-4">
+              <CardContent className="gap-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-sm opacity-70">
                       {edit.kind === "production" ? "Área de producción" : "Área del local"}
                     </p>
-                    <h2 className="card-title">{title}</h2>
+                    <h2 className="text-lg leading-snug font-semibold">{title}</h2>
                   </div>
-                  <span
-                    className={`badge ${item.active ? "badge-success" : "badge-ghost"}`}
+                  <Badge
+                    variant={item.active ? "success" : "ghost"}
                   >
                     {item.active ? "Activo" : "Inactivo"}
-                  </span>
+                  </Badge>
                 </div>
                 <p className="min-h-12 text-sm opacity-80">{description}</p>
-                <div className="card-actions">
-                  <button
-                    className="btn btn-outline"
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <Button
+                    type="submit" variant="outline"
                     disabled={!!editor}
                     onClick={() => {
                       setNotice("");
@@ -284,9 +289,9 @@ export default function LocalPage() {
                     }}
                   >
                     Editar
-                  </button>
-                  <button
-                    className="btn btn-outline"
+                  </Button>
+                  <Button
+                    type="submit" variant="outline"
                     disabled={active.isPending || !!editor}
                     onClick={async () => {
                       if (
@@ -309,10 +314,10 @@ export default function LocalPage() {
                     }}
                   >
                     {item.active ? "Desactivar" : "Activar"}
-                  </button>
+                  </Button>
                 </div>
-              </div>
-            </li>
+              </CardContent>
+            </Card>
           ))}
         </ul>
       )}

@@ -1,3 +1,10 @@
+import { Card, CardContent } from "@/presentation/components/ui/card";
+import { Input } from "@/presentation/components/ui/input";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Label } from "@/presentation/components/ui/label";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Button, buttonVariants } from "@/presentation/components/ui/button";
+import { Badge } from "@/presentation/components/ui/badge";
 import { useConfirm } from "@/presentation/components/use-confirm";
 import {
   printerPurposes,
@@ -108,8 +115,8 @@ function PrinterForm({
     useWatch({ control, name: "connectionType" }) === "NETWORK_TCP";
   const fallbackEnabled = useWatch({ control, name: "fallbackEnabled" });
   return (
-    <form
-      className="card border border-base-300 bg-base-100"
+    <Card
+      as="form"
       noValidate
       onSubmit={handleSubmit(async (values) => {
         try {
@@ -138,57 +145,57 @@ function PrinterForm({
         }
       })}
     >
-      <div className="card-body">
-        <h2 className="card-title">
+      <CardContent>
+        <h2 className="text-lg leading-snug font-semibold">
           {item ? "Editar impresora" : "Nueva impresora"}
         </h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="grid gap-1">
             Nombre
-            <input className="input w-full" {...register("name")} />
+            <Input className="w-full" {...register("name")} />
           </label>
           <label className="grid gap-1">
             Propósito
-            <select className="select w-full" {...register("purpose")}>
+            <NativeSelect className="w-full" {...register("purpose")}>
               {printerPurposes.filter((key) => key === "CASHIER" || key === "GENERAL" || key === item?.purpose).map((key) => (
                 <option key={key} value={key}>
                   {purposeLabels[key]}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           <label className="grid gap-1">
             Conexión principal
-            <select className="select w-full" {...register("connectionType")}>
+            <NativeSelect className="w-full" {...register("connectionType")}>
               <option value="NETWORK_TCP">Red TCP</option>
               <option value="SYSTEM_PRINTER">Cola del sistema</option>
-            </select>
+            </NativeSelect>
           </label>
-          <label className="label min-h-11 self-end">
-            <input type="checkbox" className="checkbox" {...register("fallbackEnabled")} />
+          <Label className="min-h-11 self-end">
+            <input type="checkbox" {...register("fallbackEnabled")} />
             Usar la otra conexión como respaldo
-          </label>
+          </Label>
           <label className="grid gap-1">
             Ancho de papel
-            <select className="select w-full" {...register("paperWidth")}>
+            <NativeSelect className="w-full" {...register("paperWidth")}>
               <option value="58">58 mm</option>
               <option value="80">80 mm</option>
-            </select>
+            </NativeSelect>
           </label>
           {(network || fallbackEnabled) && (
             <>
               <label className="grid gap-1">
                 Host o IP
-                <input
-                  className="input w-full"
+                <Input
+                  className="w-full"
                   placeholder="192.168.1.50"
                   {...register("host")}
                 />
               </label>
               <label className="grid gap-1">
                 Puerto
-                <input
-                  className="input w-full"
+                <Input
+                  className="w-full"
                   inputMode="numeric"
                   {...register("port")}
                 />
@@ -198,12 +205,12 @@ function PrinterForm({
           {(!network || fallbackEnabled) && (
             <label className="grid gap-1">
               Nombre de la cola
-              <input className="input w-full" {...register("systemName")} />
+              <Input className="w-full" {...register("systemName")} />
             </label>
           )}
           <label className="grid gap-1">
             Agente
-            <select className="select w-full" {...register("printerAgentId")}>
+            <NativeSelect className="w-full" {...register("printerAgentId")}>
               <option value="">Sin agente</option>
               {agents.map((agent) => (
                 <option key={agent.id} value={agent.id}>
@@ -211,42 +218,41 @@ function PrinterForm({
                   {agent.active ? "" : " (inactivo)"}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
-          <label className="label min-h-11">
+          <Label className="min-h-11">
             <input
               type="checkbox"
-              className="checkbox"
               {...register("active")}
             />{" "}
             Activa
-          </label>
+          </Label>
         </div>
         {Object.entries(errors).map(([key, error]) => (
-          <p key={key} role="alert" className="text-error">
+          <p key={key} role="alert" className="text-destructive">
             {error.message}
           </p>
         ))}
         {action.isError && (
-          <p role="alert" className="alert alert-error">
+          <Alert role="alert" variant="destructive">
             {apiError(action.error, "No se pudo guardar la impresora.")}
-          </p>
+          </Alert>
         )}
-        <div className="card-actions">
-          <button className="btn btn-primary" disabled={isSubmitting}>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button type="submit" disabled={isSubmitting}>
             Guardar
-          </button>
-          <button
-            className="btn btn-ghost"
+          </Button>
+          <Button
+            variant="ghost"
             type="button"
             disabled={isSubmitting}
             onClick={close}
           >
             Cancelar
-          </button>
+          </Button>
         </div>
-      </div>
-    </form>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -269,8 +275,8 @@ function AgentForm({
     defaultValues: { name: item?.name ?? "" },
   });
   return (
-    <form
-      className="card border border-base-300 bg-base-100"
+    <Card
+      as="form"
       onSubmit={handleSubmit(async (values) => {
         try {
           await action.mutateAsync(async (repo) => {
@@ -284,35 +290,35 @@ function AgentForm({
         }
       })}
     >
-      <div className="card-body">
-        <h2 className="card-title">
+      <CardContent>
+        <h2 className="text-lg leading-snug font-semibold">
           {item ? "Editar agente" : "Nuevo agente"}
         </h2>
         <label className="grid gap-1">
           Nombre
-          <input className="input w-full" {...register("name")} />
+          <Input className="w-full" {...register("name")} />
         </label>
-        {errors.name && <p className="text-error">{errors.name.message}</p>}
+        {errors.name && <p className="text-destructive">{errors.name.message}</p>}
         {action.isError && (
-          <p role="alert" className="alert alert-error">
+          <Alert role="alert" variant="destructive">
             {apiError(action.error, "No se pudo guardar el agente.")}
-          </p>
+          </Alert>
         )}
-        <div className="card-actions">
-          <button className="btn btn-primary" disabled={isSubmitting}>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button type="submit" disabled={isSubmitting}>
             Guardar
-          </button>
-          <button
-            className="btn btn-ghost"
+          </Button>
+          <Button
+            variant="ghost"
             type="button"
             disabled={isSubmitting}
             onClick={close}
           >
             Cancelar
-          </button>
+          </Button>
         </div>
-      </div>
-    </form>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -350,29 +356,29 @@ export default function PrinterSettingsPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-3xl font-bold">Impresión</h1>
-        <Link className="btn btn-outline" to={jobsPath}>
+        <h1 className="text-[1.75rem] font-semibold tracking-tight sm:text-4xl">Impresión</h1>
+        <Link className={buttonVariants({ variant: "outline" })} to={jobsPath}>
           Ver cola
         </Link>
       </div>
       {secret && admin && (
-        <section className="card border border-warning bg-base-100">
-          <div className="card-body">
-            <h2 className="card-title">Token del agente</h2>
+        <Card as="section" className="border-warning">
+          <CardContent>
+            <h2 className="text-lg leading-snug font-semibold">Token del agente</h2>
             <p>
               Se muestra una sola vez. Guárdalo en la PC del agente como{" "}
               <code>PRINTER_AGENT_TOKEN</code>.
             </p>
-            <input
+            <Input
               aria-label="Token del agente"
-              className="input w-full font-mono"
+              className="w-full font-mono"
               readOnly
               value={secret.token}
               onFocus={(event) => event.currentTarget.select()}
             />
-            <div className="card-actions">
-              <button
-                className="btn btn-outline"
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <Button
+                type="submit" variant="outline"
                 onClick={async () => {
                   try {
                     await navigator.clipboard.writeText(secret.token);
@@ -383,20 +389,20 @@ export default function PrinterSettingsPage() {
                 }}
               >
                 Copiar
-              </button>
-              <button
-                className="btn btn-primary"
+              </Button>
+              <Button
+                type="submit"
                 onClick={() => {
                   setSecret(undefined);
                   setCopy("");
                 }}
               >
                 Ya lo guardé
-              </button>
+              </Button>
             </div>
             {copy && <p role="status">{copy}</p>}
-          </div>
-        </section>
+          </CardContent>
+        </Card>
       )}
       {editor?.kind === "printer" && (
         <PrinterForm
@@ -416,33 +422,33 @@ export default function PrinterSettingsPage() {
         />
       )}
       {agentAction.isError && (
-        <p role="alert" className="alert alert-error">
+        <Alert role="alert" variant="destructive">
           {apiError(agentAction.error, "No se pudo actualizar el agente.")}
-        </p>
+        </Alert>
       )}
       {test.isError && (
-        <p role="alert" className="alert alert-error">
+        <Alert role="alert" variant="destructive">
           {apiError(
             test.error,
             "No se confirmó la prueba. Revisa la cola antes de volver a enviarla.",
           )}
-        </p>
+        </Alert>
       )}
       {deletePrinter.isError && (
-        <p role="alert" className="alert alert-error">
+        <Alert role="alert" variant="destructive">
           {apiError(deletePrinter.error, "No se pudo borrar la impresora.")}
-        </p>
+        </Alert>
       )}
       {test.data && (
-        <div className="alert alert-info" role="status">
+        <Alert variant="info" role="status">
           Prueba encolada.
-          <Link className="link" to={`${jobsPath}/${test.data.id}`}>
+          <Link className="text-link" to={`${jobsPath}/${test.data.id}`}>
             Consultar estado
           </Link>
-        </div>
+        </Alert>
       )}
       <div className="grid items-start gap-4 xl:grid-cols-2">
-        <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4 xl:col-span-2">
+        <section className="space-y-3 rounded-xl border border-border bg-card p-4 xl:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-xl font-semibold">Detectar impresoras locales</h2>
@@ -450,9 +456,9 @@ export default function PrinterSettingsPage() {
                 El agente solo escaneará la red que indiques.
               </p>
             </div>
-            <span className={`badge ${localHealth.data?.ok ? "badge-success" : "badge-ghost"}`}>
+            <Badge variant={localHealth.data?.ok ? "success" : "ghost"}>
               {localHealth.data?.ok ? "API local conectada" : "API local no disponible"}
-            </span>
+            </Badge>
           </div>
           <div className="grid gap-3 sm:grid-cols-[1fr_10rem_auto]">
             <label className="grid gap-1">
@@ -460,8 +466,8 @@ export default function PrinterSettingsPage() {
               <span className="flex items-center gap-1">
                 {scanOctets.map((octet, index) => (
                   <span key={index} className="flex min-w-0 flex-1 items-center gap-1">
-                    <input
-                      className="input w-full text-center"
+                    <Input
+                      className="w-full text-center"
                       inputMode="numeric"
                       maxLength={3}
                       value={octet}
@@ -483,15 +489,15 @@ export default function PrinterSettingsPage() {
             </label>
             <label className="grid gap-1">
               Puerto
-              <input
-                className="input w-full"
+              <Input
+                className="w-full"
                 inputMode="numeric"
                 value={scanPort}
                 onChange={(event) => setScanPort(event.target.value)}
               />
             </label>
-            <button
-              className="btn btn-primary self-end"
+            <Button
+              type="submit" className="self-end"
               disabled={!localHealth.data?.ok || discoveryAction.isPending || !scanNetworkReady}
               onClick={() => {
                 setDiscovery(undefined);
@@ -509,17 +515,17 @@ export default function PrinterSettingsPage() {
               }}
             >
               {discoveryAction.isPending ? "Buscando…" : "Buscar"}
-            </button>
+            </Button>
           </div>
           {localHealth.isError && (
-            <p className="text-sm text-error">
+            <p className="text-sm text-destructive">
               Inicia el agente Go en esta computadora para habilitar la búsqueda.
             </p>
           )}
           {discoveryAction.isError && (
-            <p role="alert" className="alert alert-error">
+            <Alert role="alert" variant="destructive">
               {apiError(discoveryAction.error, "No se pudo escanear la red indicada.")}
-            </p>
+            </Alert>
           )}
           {discovery && (
             <div className="grid gap-3 md:grid-cols-2">
@@ -527,54 +533,54 @@ export default function PrinterSettingsPage() {
                 <h3 className="font-semibold">Impresoras de red ({discovery.network.length})</h3>
                 {discovery.network.length === 0 && <p className="text-sm opacity-75">No se encontraron impresoras TCP.</p>}
                 {discovery.network.map((printer) => (
-                  <div key={`${printer.host}:${printer.port}`} className="flex flex-wrap items-center justify-between gap-2 rounded border border-base-300 p-3">
+                  <div key={`${printer.host}:${printer.port}`} className="flex flex-wrap items-center justify-between gap-2 rounded border border-border p-3">
                     <span className="font-mono">{printer.host}:{printer.port} · {printer.latencyMs} ms</span>
-                    <button
-                      className="btn btn-sm btn-outline"
+                    <Button
+                      type="submit" variant="outline" size="sm"
                       onClick={() => setEditor({ kind: "printer", prefill: { name: `Impresora ${printer.host}`, connectionType: "NETWORK_TCP", host: printer.host, port: printer.port, paperWidth: 80, active: true } })}
                     >
                       Guardar impresora
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
               <div className="space-y-2">
                 <h3 className="font-semibold">Colas de Windows ({discovery.system.length})</h3>
                 {discovery.system.map((printer) => (
-                  <div key={`${printer.name}:${printer.portName}`} className="flex flex-wrap items-center justify-between gap-2 rounded border border-base-300 p-3">
+                  <div key={`${printer.name}:${printer.portName}`} className="flex flex-wrap items-center justify-between gap-2 rounded border border-border p-3">
                     <span>{printer.name} · {printer.portName}</span>
-                    <button
-                      className="btn btn-sm btn-outline"
+                    <Button
+                      type="submit" variant="outline" size="sm"
                       onClick={() => setEditor({ kind: "printer", prefill: { name: printer.name, connectionType: "SYSTEM_PRINTER", systemName: printer.name, paperWidth: 80, active: true } })}
                     >
                       Guardar impresora
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
             </div>
           )}
         </section>
-        <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4">
+        <section className="space-y-3 rounded-xl border border-border bg-card p-4">
           <div className="flex flex-wrap justify-between gap-2">
             <h2 className="text-xl font-semibold">Impresoras</h2>
-            <button
-              className="btn btn-primary"
+            <Button
+              type="submit"
               disabled={!!editor || !agents.isSuccess}
               onClick={() => setEditor({ kind: "printer" })}
             >
               Nueva impresora
-            </button>
+            </Button>
           </div>
           <p>Configura una impresora activa de comandas para cocina y barra y asigna un agente.</p>
           {printers.isPending && <p role="status">Cargando impresoras…</p>}
           {printers.isError && (
-            <div role="alert" className="alert alert-error">
+            <Alert role="alert" variant="destructive">
               No se pudieron cargar las impresoras.
-              <button className="btn" onClick={() => void printers.refetch()}>
+              <Button type="submit" variant="outline" onClick={() => void printers.refetch()}>
                 Reintentar
-              </button>
-            </div>
+              </Button>
+            </Alert>
           )}
           {printers.data?.length === 0 && (
             <p>No hay impresoras configuradas.</p>
@@ -586,15 +592,15 @@ export default function PrinterSettingsPage() {
             return (
               <div
                 key={item.id}
-                className="space-y-2 border-t border-base-300 pt-3"
+                className="space-y-2 border-t border-border pt-3"
               >
                 <p className="font-semibold">
                   {item.name}{" "}
-                  <span
-                    className={`badge ${item.active ? "badge-success" : "badge-ghost"}`}
+                  <Badge
+                    variant={item.active ? "success" : "ghost"}
                   >
                     {item.active ? "Activa" : "Inactiva"}
-                  </span>
+                  </Badge>
                 </p>
                 <p>
                   {purposeLabels[item.purpose]} ·{" "}
@@ -614,15 +620,15 @@ export default function PrinterSettingsPage() {
                   {agent?.name ?? "Sin agente visible"}
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    className="btn btn-outline"
+                  <Button
+                    type="submit" variant="outline"
                     disabled={!!editor || !agents.isSuccess}
                     onClick={() => setEditor({ kind: "printer", item })}
                   >
                     Editar
-                  </button>
-                  <button
-                    className="btn btn-outline btn-error"
+                  </Button>
+                  <Button
+                    type="submit" variant="destructive"
                     disabled={!!editor || deletePrinter.isPending || test.isPending}
                     onClick={async () => {
                       if (
@@ -637,9 +643,9 @@ export default function PrinterSettingsPage() {
                     }}
                   >
                     Borrar
-                  </button>
-                  <button
-                    className="btn btn-outline"
+                  </Button>
+                  <Button
+                    type="submit" variant="outline"
                     disabled={
                       !item.active ||
                       !agent?.active ||
@@ -653,7 +659,7 @@ export default function PrinterSettingsPage() {
                     }}
                   >
                     Probar
-                  </button>
+                  </Button>
                 </div>
                 {testId === item.id && (
                   <form
@@ -675,28 +681,28 @@ export default function PrinterSettingsPage() {
                   >
                     <label className="grid gap-1">
                       Texto de prueba (opcional)
-                      <input
-                        className="input w-full"
+                      <Input
+                        className="w-full"
                         maxLength={300}
                         value={message}
                         onChange={(event) => setMessage(event.target.value)}
                       />
                     </label>
                     <div className="flex flex-wrap gap-2">
-                      <button
-                        className="btn btn-primary"
+                      <Button
+                        type="submit"
                         disabled={test.isPending}
                       >
                         Encolar prueba
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
-                        className="btn btn-ghost"
+                        variant="ghost"
                         disabled={test.isPending}
                         onClick={() => setTestId(undefined)}
                       >
                         Volver
-                      </button>
+                      </Button>
                     </div>
                   </form>
                 )}
@@ -704,45 +710,45 @@ export default function PrinterSettingsPage() {
             );
           })}
         </section>
-        <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4">
+        <section className="space-y-3 rounded-xl border border-border bg-card p-4">
           <div className="flex flex-wrap justify-between gap-2">
             <h2 className="text-xl font-semibold">Agentes</h2>
             {admin && (
-              <button
-                className="btn btn-primary"
+              <Button
+                type="submit"
                 disabled={!!editor || !!secret || agentAction.isPending}
                 onClick={() => setEditor({ kind: "agent" })}
               >
                 Nuevo agente
-              </button>
+              </Button>
             )}
           </div>
           {agents.isPending && <p role="status">Cargando agentes…</p>}
           {agents.isError && (
-            <div role="alert" className="alert alert-error">
+            <Alert role="alert" variant="destructive">
               No se pudieron cargar los agentes.
-              <button className="btn" onClick={() => void agents.refetch()}>
+              <Button type="submit" variant="outline" onClick={() => void agents.refetch()}>
                 Reintentar
-              </button>
-            </div>
+              </Button>
+            </Alert>
           )}
           {agents.data?.length === 0 && <p>No hay agentes registrados.</p>}
           {agents.data?.map((item) => (
             <div
               key={item.id}
-              className="space-y-2 border-t border-base-300 pt-3"
+              className="space-y-2 border-t border-border pt-3"
             >
               <p className="font-semibold">
                 {item.name}{" "}
-                <span
-                  className={`badge ${item.online ? "badge-success" : "badge-ghost"}`}
+                <Badge
+                  variant={item.online ? "success" : "ghost"}
                 >
                   {!item.active
                     ? "Inactivo"
                     : item.online
                       ? "En línea"
                       : "Desconectado"}
-                </span>
+                </Badge>
               </p>
               {item.lastSeenAt && (
                 <p className="text-sm">
@@ -751,15 +757,15 @@ export default function PrinterSettingsPage() {
               )}
               {admin && (
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    className="btn btn-outline"
+                  <Button
+                    type="submit" variant="outline"
                     disabled={!!editor || agentAction.isPending}
                     onClick={() => setEditor({ kind: "agent", item })}
                   >
                     Editar
-                  </button>
-                  <button
-                    className="btn btn-outline"
+                  </Button>
+                  <Button
+                    type="submit" variant="outline"
                     disabled={!!editor || agentAction.isPending}
                     onClick={() =>
                       agentAction.mutate((repo) =>
@@ -768,9 +774,9 @@ export default function PrinterSettingsPage() {
                     }
                   >
                     {item.active ? "Desactivar" : "Activar"}
-                  </button>
-                  <button
-                    className="btn btn-outline"
+                  </Button>
+                  <Button
+                    type="submit" variant="outline"
                     disabled={!!editor || !!secret || agentAction.isPending}
                     onClick={async () => {
                       if (
@@ -785,7 +791,7 @@ export default function PrinterSettingsPage() {
                     }}
                   >
                     Rotar token
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>

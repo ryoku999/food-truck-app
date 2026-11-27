@@ -1,3 +1,9 @@
+import { Card, CardContent } from "@/presentation/components/ui/card";
+import { Button, buttonVariants } from "@/presentation/components/ui/button";
+import { Alert } from "@/presentation/components/ui/alert";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Input } from "@/presentation/components/ui/input";
+import { Badge } from "@/presentation/components/ui/badge";
 import {
   auditActions,
   type AuditAction,
@@ -61,22 +67,22 @@ function Detail({ id, close }: { id: string; close: () => void }) {
   const query = useAuditDetail(id);
   const log = query.data;
   return (
-    <section className="card border border-base-300 bg-base-100">
-      <div className="card-body">
+    <Card as="section">
+      <CardContent>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="card-title">Detalle del evento</h2>
-          <button className="btn btn-outline" onClick={close}>
+          <h2 className="text-lg leading-snug font-semibold">Detalle del evento</h2>
+          <Button type="submit" variant="outline" onClick={close}>
             Cerrar detalle
-          </button>
+          </Button>
         </div>
         {query.isPending && <p role="status">Cargando evento…</p>}
         {query.isError && (
-          <div className="alert alert-error" role="alert">
+          <Alert variant="destructive" role="alert">
             {apiError(query.error, "No se pudo cargar el evento.")}
-            <button className="btn" onClick={() => void query.refetch()}>
+            <Button type="submit" variant="outline" onClick={() => void query.refetch()}>
               Reintentar
-            </button>
-          </div>
+            </Button>
+          </Alert>
         )}
         {log && (
           <>
@@ -112,7 +118,7 @@ function Detail({ id, close }: { id: string; close: () => void }) {
               ].map(([label, data]) => (
                 <div
                   key={String(label)}
-                  className="min-w-0 rounded-box bg-base-200 p-3"
+                  className="min-w-0 rounded-xl bg-muted p-3"
                 >
                   <h3 className="font-semibold">{String(label)}</h3>
                   {data == null ? (
@@ -127,8 +133,8 @@ function Detail({ id, close }: { id: string; close: () => void }) {
             </div>
           </>
         )}
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -163,29 +169,29 @@ export default function AuditPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-3xl font-bold">Auditoría</h1>
+        <h1 className="text-[1.75rem] font-semibold tracking-tight sm:text-4xl">Auditoría</h1>
         <p>Actividad del sistema</p>
       </div>
       <form
-        className="grid gap-3 rounded-box border border-base-300 bg-base-100 p-4 sm:grid-cols-2 xl:grid-cols-3"
+        className="grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 xl:grid-cols-3"
         noValidate
         onSubmit={handleSubmit(apply)}
       >
         <label className="grid gap-1">
           Acción
-          <select className="select w-full" {...register("action")}>
+          <NativeSelect className="w-full" {...register("action")}>
             <option value="">Todas</option>
             {auditActions.map((action) => (
               <option key={action} value={action}>
                 {actionLabels[action]}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
         <label className="grid gap-1">
           Entidad
-          <input
-            className="input w-full"
+          <Input
+            className="w-full"
             placeholder="Ej. Payment"
             maxLength={100}
             {...register("entity")}
@@ -193,43 +199,43 @@ export default function AuditPage() {
         </label>
         <label className="grid gap-1">
           ID de entidad
-          <input
-            className="input w-full"
+          <Input
+            className="w-full"
             maxLength={200}
             {...register("entityId")}
           />
         </label>
         <label className="grid gap-1">
           ID de usuario
-          <input
-            className="input w-full"
+          <Input
+            className="w-full"
             maxLength={36}
             {...register("userId")}
           />
         </label>
         <label className="grid gap-1">
           Desde
-          <input className="input w-full" type="date" {...register("from")} />
+          <Input className="w-full" type="date" {...register("from")} />
         </label>
         <label className="grid gap-1">
           Hasta
-          <input className="input w-full" type="date" {...register("to")} />
+          <Input className="w-full" type="date" {...register("to")} />
         </label>
         <div className="flex flex-wrap gap-2 sm:col-span-2 xl:col-span-3">
-          <button className="btn btn-primary">Aplicar filtros</button>
-          <button
+          <Button type="submit">Aplicar filtros</Button>
+          <Button
             type="button"
-            className="btn btn-outline"
+            variant="outline"
             onClick={() => {
               reset(defaults);
               apply(defaults);
             }}
           >
             Limpiar
-          </button>
+          </Button>
         </div>
         {Object.entries(errors).map(([key, error]) => (
-          <p className="text-error" role="alert" key={key}>
+          <p className="text-destructive" role="alert" key={key}>
             {error.message}
           </p>
         ))}
@@ -239,31 +245,31 @@ export default function AuditPage() {
         <h2 className="text-xl font-semibold">
           Eventos {query.data ? `· ${query.data.total}` : ""}
         </h2>
-        <button
-          className="btn btn-outline"
+        <Button
+          type="submit" variant="outline"
           disabled={query.isFetching}
           onClick={() => void query.refetch()}
         >
           Actualizar
-        </button>
+        </Button>
       </div>
       {query.isPending && <p role="status">Cargando eventos…</p>}
       {query.isError && (
-        <p role="alert" className="alert alert-error">
+        <Alert role="alert" variant="destructive">
           {apiError(query.error, "No se pudieron cargar los eventos.")}
-        </p>
+        </Alert>
       )}
       {query.data?.items.length === 0 && (
         <p>No hay eventos para estos filtros.</p>
       )}
       <ul className="grid gap-3 sm:grid-cols-2">
         {query.data?.items.map((log) => (
-          <li key={log.id} className="card border border-base-300 bg-base-100">
-            <div className="card-body gap-2 p-4">
+          <Card key={log.id} as="li">
+            <CardContent className="gap-2 p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="badge badge-outline">
+                <Badge variant="outline">
                   {actionLabels[log.action]}
-                </span>
+                </Badge>
                 <span className="text-sm">{limaDateTime(log.createdAt)}</span>
               </div>
               <h3 className="font-semibold">{log.entity}</h3>
@@ -274,25 +280,25 @@ export default function AuditPage() {
               {log.description && (
                 <p className="wrap-break-word">{log.description}</p>
               )}
-              <div className="card-actions">
-                <Link className="btn btn-outline" to={`?event=${log.id}`}>
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <Link className={buttonVariants({ variant: "outline" })} to={`?event=${log.id}`}>
                   Ver detalle
                 </Link>
                 {log.userId && (
-                  <button
+                  <Button
                     type="button"
-                    className="btn btn-ghost"
+                    variant="ghost"
                     onClick={() => {
                       setValue("userId", log.userId ?? "");
                       void handleSubmit(apply)();
                     }}
                   >
                     Filtrar por usuario
-                  </button>
+                  </Button>
                 )}
               </div>
-            </div>
-          </li>
+            </CardContent>
+          </Card>
         ))}
       </ul>
       {(filters.offset > 0 || (query.data?.total ?? 0) > limit) && (
@@ -300,8 +306,8 @@ export default function AuditPage() {
           className="flex flex-wrap items-center gap-2"
           aria-label="Paginación de auditoría"
         >
-          <button
-            className="btn btn-outline"
+          <Button
+            type="submit" variant="outline"
             disabled={!filters.offset}
             onClick={() =>
               setFilters((previous) => ({
@@ -311,10 +317,10 @@ export default function AuditPage() {
             }
           >
             Anterior
-          </button>
+          </Button>
           <span>Pág. {filters.offset / limit + 1}</span>
-          <button
-            className="btn btn-outline"
+          <Button
+            type="submit" variant="outline"
             disabled={
               filters.offset + limit >= (query.data?.total ?? 0) ||
               filters.offset + limit > 100000
@@ -327,7 +333,7 @@ export default function AuditPage() {
             }
           >
             Siguiente
-          </button>
+          </Button>
         </nav>
       )}
     </div>

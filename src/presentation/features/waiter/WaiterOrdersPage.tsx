@@ -1,3 +1,10 @@
+import { Button, buttonVariants } from "@/presentation/components/ui/button";
+import { Label } from "@/presentation/components/ui/label";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Input } from "@/presentation/components/ui/input";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Card } from "@/presentation/components/ui/card";
+import { Badge } from "@/presentation/components/ui/badge";
 import { useOrders } from "@/infrastructure/hooks/use-orders";
 import { useBusiness } from "@/infrastructure/hooks/use-management";
 import { apiError } from "@/shared/utils/api-error";
@@ -59,14 +66,14 @@ export default function WaiterOrdersPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold">Mis pedidos</h1>
-        <Link className="btn btn-primary min-h-11" to="/waiter/orders/new">
+        <h1 className="text-[1.75rem] font-semibold tracking-tight">Mis pedidos</h1>
+        <Link className={buttonVariants({ className: "min-h-11" })} to="/waiter/orders/new">
           Nuevo pedido
         </Link>
       </div>
-      <div className="join" role="group" aria-label="Vista de pedidos">
-        <button
-          className={`btn join-item min-h-11 ${view === "active" ? "btn-primary" : "btn-outline"}`}
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Vista de pedidos">
+        <Button
+          type="submit" variant={view === "active" ? "default" : "outline"} className="min-h-11"
           aria-pressed={view === "active"}
           onClick={() => {
             setView("active");
@@ -74,9 +81,9 @@ export default function WaiterOrdersPage() {
           }}
         >
           En curso
-        </button>
-        <button
-          className={`btn join-item min-h-11 ${view === "history" ? "btn-primary" : "btn-outline"}`}
+        </Button>
+        <Button
+          type="submit" variant={view === "history" ? "default" : "outline"} className="min-h-11"
           aria-pressed={view === "history"}
           onClick={() => {
             setView("history");
@@ -84,13 +91,12 @@ export default function WaiterOrdersPage() {
           }}
         >
           Historial
-        </button>
+        </Button>
       </div>
       <div className="flex flex-wrap items-end gap-2">
         {view === "active" ? (
-          <label className="label min-h-11">
+          <Label className="min-h-11">
             <input
-              className="checkbox"
               type="checkbox"
               checked={drafts}
               onChange={(event) => {
@@ -99,13 +105,13 @@ export default function WaiterOrdersPage() {
               }}
             />{" "}
             Solo borradores
-          </label>
+          </Label>
         ) : (
           <>
             <label className="grid gap-1">
               <span>Periodo (hora de Lima)</span>
-              <select
-                className="select min-h-11"
+              <NativeSelect
+                className="min-h-11"
                 value={period}
                 onChange={(event) => {
                   setPeriod(event.target.value as typeof period);
@@ -115,14 +121,14 @@ export default function WaiterOrdersPage() {
                 <option value="today">Hoy</option>
                 <option value="week">Esta semana</option>
                 <option value="custom">Rango personalizado</option>
-              </select>
+              </NativeSelect>
             </label>
             {period === "custom" && (
               <>
                 <label className="grid gap-1">
                   Desde
-                  <input
-                    className="input min-h-11"
+                  <Input
+                    className="min-h-11"
                     type="date"
                     value={from}
                     max={to || undefined}
@@ -134,8 +140,8 @@ export default function WaiterOrdersPage() {
                 </label>
                 <label className="grid gap-1">
                   Hasta
-                  <input
-                    className="input min-h-11"
+                  <Input
+                    className="min-h-11"
                     type="date"
                     value={to}
                     min={from || undefined}
@@ -149,36 +155,36 @@ export default function WaiterOrdersPage() {
             )}
           </>
         )}
-        <button
-          className="btn btn-outline min-h-11"
+        <Button
+          type="submit" variant="outline" className="min-h-11"
           disabled={orders.isFetching || (view === "history" && !validRange)}
           onClick={() => void orders.refetch()}
         >
           Actualizar
-        </button>
+        </Button>
       </div>
       {view === "history" && !validRange && (
         <p role="status">Selecciona un rango de fechas válido.</p>
       )}
       {orders.isLoading && <p role="status">Cargando pedidos…</p>}
       {orders.isError && (
-        <p role="alert" className="alert alert-error">
+        <Alert role="alert" variant="destructive">
           {apiError(orders.error, "No se pudieron cargar los pedidos.")}
-        </p>
+        </Alert>
       )}
       {orders.data?.items.length === 0 && <p>No hay pedidos en esta página.</p>}
-      <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <ul className="grid gap-3">
         {orders.data?.items.map((order) => (
-          <li
+          <Card
             key={order.id}
-            className="card border border-base-300 bg-base-100"
+            as="li"
           >
-            <Link to={`/waiter/orders/${order.id}`} className="card-body">
+            <Link to={`/waiter/orders/${order.id}`} className="flex flex-col gap-4 p-4 sm:p-5">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="card-title">Pedido #{order.number}</h2>
-                <span className="badge badge-outline">
+                <h2 className="text-lg leading-snug font-semibold">Pedido #{order.number}</h2>
+                <Badge variant="outline">
                   {orderLabels[order.status]}
-                </span>
+                </Badge>
               </div>
               <p>
                 {order.tables.length
@@ -194,7 +200,7 @@ export default function WaiterOrdersPage() {
                 {money.format(Number(order.total))}
               </p>
             </Link>
-          </li>
+          </Card>
         ))}
       </ul>
       {orders.data && orders.data.meta.pageCount > 1 && (
@@ -202,23 +208,23 @@ export default function WaiterOrdersPage() {
           className="flex flex-wrap items-center gap-3"
           aria-label="Paginación de pedidos"
         >
-          <button
-            className="btn btn-outline"
+          <Button
+            type="submit" variant="outline"
             disabled={page <= 1}
             onClick={() => setPage(page - 1)}
           >
             Anterior
-          </button>
+          </Button>
           <span>
             Página {page} de {orders.data.meta.pageCount}
           </span>
-          <button
-            className="btn btn-outline"
+          <Button
+            type="submit" variant="outline"
             disabled={page >= orders.data.meta.pageCount}
             onClick={() => setPage(page + 1)}
           >
             Siguiente
-          </button>
+          </Button>
         </nav>
       )}
     </div>

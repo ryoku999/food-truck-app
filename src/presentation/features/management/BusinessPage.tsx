@@ -1,3 +1,8 @@
+import { Button } from "@/presentation/components/ui/button";
+import { Card, CardContent } from "@/presentation/components/ui/card";
+import { Textarea } from "@/presentation/components/ui/textarea";
+import { Input } from "@/presentation/components/ui/input";
+import { Alert } from "@/presentation/components/ui/alert";
 import { useConfirm } from "@/presentation/components/use-confirm";
 import {
   useBusiness,
@@ -49,9 +54,9 @@ function LogoPreview({ logo }: { logo: NonNullable<Business["logo"]> }) {
   const [brokenUrl, setBrokenUrl] = useState<string>();
   const url = signed.data?.url ?? logo.url;
   return brokenUrl === url ? (
-    <button
+    <Button
       type="button"
-      className="btn btn-outline"
+      variant="outline"
       disabled={signed.isFetching}
       onClick={() =>
         void signed.refetch().then((result) => {
@@ -60,10 +65,10 @@ function LogoPreview({ logo }: { logo: NonNullable<Business["logo"]> }) {
       }
     >
       Renovar vista del logo
-    </button>
+    </Button>
   ) : (
     <img
-      className="h-24 w-24 rounded-box bg-base-200 object-contain"
+      className="h-24 w-24 rounded-xl bg-muted object-contain"
       src={url}
       alt="Logo del negocio"
       onError={() => setBrokenUrl(url)}
@@ -110,15 +115,15 @@ function BusinessForm({ business }: { business: Business | null }) {
   }
   return (
     <div className="grid gap-5 lg:grid-cols-[2fr_1fr]">
-      <form
-        className="card border border-base-300 bg-base-100"
+      <Card
+        as="form"
         onSubmit={handleSubmit((values) =>
           settings.mutate(values, { onSuccess: () => reset(values) }),
         )}
         noValidate
       >
-        <div className="card-body">
-          <h2 className="card-title">Datos generales</h2>
+        <CardContent>
+          <h2 className="text-lg leading-snug font-semibold">Datos generales</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {(Object.keys(labels) as (keyof Fields)[]).map((key) => (
               <label
@@ -131,21 +136,21 @@ function BusinessForm({ business }: { business: Business | null }) {
               >
                 {labels[key]}
                 {key === "description" ? (
-                  <textarea
-                    className="textarea w-full"
+                  <Textarea
+                    className="w-full"
                     aria-invalid={!!errors[key]}
                     {...register(key)}
                   />
                 ) : (
-                  <input
-                    className="input w-full"
+                  <Input
+                    className="w-full"
                     type={key === "email" ? "email" : "text"}
                     aria-invalid={!!errors[key]}
                     {...register(key)}
                   />
                 )}
                 {errors[key] && (
-                  <span className="text-sm text-error">
+                  <span className="text-sm text-destructive">
                     {errors[key]?.message}
                   </span>
                 )}
@@ -153,26 +158,26 @@ function BusinessForm({ business }: { business: Business | null }) {
             ))}
           </div>
           {settings.isError && (
-            <p role="alert" className="alert alert-error">
+            <Alert role="alert" variant="destructive">
               {apiError(settings.error, "No se pudo guardar el negocio.")}
-            </p>
+            </Alert>
           )}
           {settings.isSuccess && (
-            <p role="status" className="alert alert-success">
+            <Alert role="status" variant="success">
               Datos guardados.
-            </p>
+            </Alert>
           )}
-          <button
-            className="btn btn-primary self-start"
+          <Button
+            type="submit" className="self-start"
             disabled={settings.isPending}
           >
             {settings.isPending ? "Guardando…" : "Guardar datos"}
-          </button>
-        </div>
-      </form>
-      <section className="card self-start border border-base-300 bg-base-100">
-        <div className="card-body">
-          <h2 className="card-title">Logo</h2>
+          </Button>
+        </CardContent>
+      </Card>
+      <Card as="section" className="self-start">
+        <CardContent>
+          <h2 className="text-lg leading-snug font-semibold">Logo</h2>
           {business?.logo ? (
             <LogoPreview key={business.logo.id} logo={business.logo} />
           ) : (
@@ -182,11 +187,11 @@ function BusinessForm({ business }: { business: Business | null }) {
             <>
               <label className="grid gap-1">
                 Imagen
-                <input
+                <Input
                   ref={fileInput}
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
-                  className="file-input w-full"
+                  className="w-full"
                   disabled={busy}
                   onChange={(event) => {
                     const selected = event.target.files?.[0] ?? null;
@@ -205,21 +210,21 @@ function BusinessForm({ business }: { business: Business | null }) {
                 />
               </label>
               {fileError && (
-                <p role="alert" className="text-error">
+                <p role="alert" className="text-destructive">
                   {fileError}
                 </p>
               )}
               {(upload.isError || logo.isError) && (
-                <p role="alert" className="alert alert-error">
+                <Alert role="alert" variant="destructive">
                   {apiError(
                     upload.error ?? logo.error,
                     "No se pudo actualizar el logo.",
                   )}
-                </p>
+                </Alert>
               )}
               {logo.isSuccess && <p role="status">Logo actualizado.</p>}
-              <button
-                className="btn btn-primary"
+              <Button
+                type="submit"
                 disabled={!file || busy}
                 onClick={() => void saveLogo()}
               >
@@ -228,10 +233,10 @@ function BusinessForm({ business }: { business: Business | null }) {
                   : upload.data
                     ? "Reintentar asociación"
                     : "Subir y asociar"}
-              </button>
+              </Button>
               {business.logo && (
-                <button
-                  className="btn btn-outline"
+                <Button
+                  type="submit" variant="outline"
                   disabled={busy}
                   onClick={async () => {
                     if (await confirmAction("¿Quitar el logo del negocio?"))
@@ -239,14 +244,14 @@ function BusinessForm({ business }: { business: Business | null }) {
                   }}
                 >
                   Quitar logo
-                </button>
+                </Button>
               )}
             </>
           ) : (
             <p>Guarda los datos del negocio antes de subir una imagen.</p>
           )}
-        </div>
-      </section>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -255,16 +260,16 @@ export default function BusinessPage() {
   const business = useBusiness();
   return (
     <div className="space-y-4">
-      <h1 className="text-3xl font-bold">Negocio</h1>
+      <h1 className="text-[1.75rem] font-semibold tracking-tight sm:text-4xl">Negocio</h1>
       {business.isPending ? (
         <p role="status">Cargando configuración…</p>
       ) : business.isError ? (
-        <div className="alert alert-error" role="alert">
+        <Alert variant="destructive" role="alert">
           {apiError(business.error, "No se pudo cargar el negocio.")}
-          <button className="btn" onClick={() => void business.refetch()}>
+          <Button type="submit" variant="outline" onClick={() => void business.refetch()}>
             Reintentar
-          </button>
-        </div>
+          </Button>
+        </Alert>
       ) : (
         <BusinessForm business={business.data} />
       )}

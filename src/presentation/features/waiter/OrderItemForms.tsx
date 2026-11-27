@@ -1,3 +1,11 @@
+import { Card, CardContent } from "@/presentation/components/ui/card";
+import { FieldLegend, FieldSet } from "@/presentation/components/ui/field";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Label } from "@/presentation/components/ui/label";
+import { Input } from "@/presentation/components/ui/input";
+import { Textarea } from "@/presentation/components/ui/textarea";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Button } from "@/presentation/components/ui/button";
 import { useCatalogProduct } from "@/infrastructure/hooks/use-catalog";
 import type { Product } from "@/core/entities/catalog.entity";
 import type { OrderItem } from "@/core/entities/order.entity";
@@ -87,8 +95,8 @@ export function AddItemForm({
     errors.combos?.message,
   ].find((value): value is string => typeof value === "string");
   return (
-    <form
-      className="card border border-base-300 bg-base-100"
+    <Card
+      as="form"
       noValidate
       onSubmit={handleSubmit(async (values) => {
         clearErrors("root");
@@ -153,13 +161,13 @@ export function AddItemForm({
         }
       })}
     >
-      <div className="card-body">
-        <h3 className="card-title">{product.name}</h3>
-        <fieldset className="grid gap-3" disabled={isSubmitting}>
+      <CardContent>
+        <h3 className="text-lg leading-snug font-semibold">{product.name}</h3>
+        <FieldSet className="grid gap-3" disabled={isSubmitting}>
           {variants.length > 0 && (
             <label className="grid gap-1">
               Variante
-              <select className="select w-full" {...register("variant")}>
+              <NativeSelect className="w-full" {...register("variant")}>
                 <option value="">
                   Presentación base · {money.format(Number(product.basePrice))}
                 </option>
@@ -172,7 +180,7 @@ export function AddItemForm({
                     {variant.name} · {money.format(Number(variant.price))}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
           )}
           {groups.map((group) => {
@@ -180,11 +188,11 @@ export function AddItemForm({
               options.includes(option.id),
             );
             return (
-              <fieldset
+              <FieldSet
                 key={group.id}
-                className="rounded-box border border-base-300 p-3"
+                className="rounded-xl border border-border p-3"
               >
-                <legend className="px-1 font-semibold">{group.name}</legend>
+                <FieldLegend className="px-1 font-semibold">{group.name}</FieldLegend>
                 <p className="text-sm">
                   {group.required ? "Obligatorio" : "Opcional"} ·{" "}
                   {group.minSelections} a {group.maxSelections ?? "sin límite"}
@@ -196,12 +204,11 @@ export function AddItemForm({
                       options.includes(option.id),
                   )
                   .map((option) => (
-                    <label
+                    <Label
                       key={option.id}
-                      className="label flex min-h-11 justify-start whitespace-normal"
+                      className="min-h-11 flex justify-start whitespace-normal"
                     >
                       <input
-                        className="checkbox"
                         type="checkbox"
                         checked={options.includes(option.id)}
                         disabled={
@@ -228,17 +235,17 @@ export function AddItemForm({
                         }}
                       />{" "}
                       {option.name} · {money.format(Number(option.priceDelta))}
-                    </label>
+                    </Label>
                   ))}
-              </fieldset>
+              </FieldSet>
             );
           })}
           {product.comboGroups.map((group) => (
-            <fieldset
+            <FieldSet
               key={group.id}
-              className="rounded-box border border-base-300 p-3"
+              className="rounded-xl border border-border p-3"
             >
-              <legend className="px-1 font-semibold">{group.name}</legend>
+              <FieldLegend className="px-1 font-semibold">{group.name}</FieldLegend>
               <p className="text-sm">
                 Elige de {group.minSelections} a {group.maxSelections}
               </p>
@@ -250,13 +257,12 @@ export function AddItemForm({
                 .map((item) => {
                   const selected = combos[group.id] ?? [];
                   return (
-                    <label
+                    <Label
                       key={item.id}
-                      className="label flex min-h-11 justify-start whitespace-normal"
+                      className="min-h-11 flex justify-start whitespace-normal"
                     >
                       <input
                         type="checkbox"
-                        className="checkbox"
                         checked={selected.includes(item.id)}
                         disabled={
                           !selected.includes(item.id) &&
@@ -280,52 +286,52 @@ export function AddItemForm({
                       />{" "}
                       {item.productNameSnapshot} · adicional{" "}
                       {money.format(Number(item.additionalPrice))}
-                    </label>
+                    </Label>
                   );
                 })}
-            </fieldset>
+            </FieldSet>
           ))}
           <label className="grid gap-1">
             Cantidad
-            <input
+            <Input
               type="number"
               inputMode="numeric"
               min={1}
-              className="input w-full"
+              className="w-full"
               {...register("quantity", { valueAsNumber: true })}
             />
           </label>
           <label className="grid gap-1">
             Notas
-            <textarea
+            <Textarea
               maxLength={1000}
-              className="textarea w-full"
+              className="w-full"
               {...register("notes")}
             />
           </label>
-        </fieldset>
+        </FieldSet>
         {message && (
-          <p className="alert alert-error" role="alert">
+          <Alert variant="destructive" role="alert">
             {message}
-          </p>
+          </Alert>
         )}
-        <button className="btn btn-primary min-h-11" disabled={isSubmitting}>
+        <Button type="submit" className="min-h-11" disabled={isSubmitting}>
           {isSubmitting
             ? "Guardando…"
             : item
               ? "Guardar cambios"
               : "Agregar a la comanda"}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          className="btn btn-ghost min-h-11"
+          variant="ghost" className="min-h-11"
           disabled={isSubmitting}
           onClick={close}
         >
           Cancelar
-        </button>
-      </div>
-    </form>
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -370,39 +376,39 @@ function EditQuantityForm({
     >
       <label className="grid gap-1">
         Cantidad
-        <input
+        <Input
           type="number"
           inputMode="numeric"
           min={1}
-          className="input w-full"
+          className="w-full"
           {...register("quantity", { valueAsNumber: true })}
         />
       </label>
       <label className="grid gap-1">
         Notas
-        <textarea
-          className="textarea w-full"
+        <Textarea
+          className="w-full"
           maxLength={1000}
           {...register("notes")}
         />
       </label>
       {(errors.root?.message || errors.quantity?.message) && (
-        <p role="alert" className="text-error">
+        <p role="alert" className="text-destructive">
           {errors.root?.message || errors.quantity?.message}
         </p>
       )}
       <div className="flex flex-wrap gap-2">
-        <button className="btn btn-primary" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting}>
           Guardar ítem
-        </button>
-        <button
-          className="btn btn-ghost"
+        </Button>
+        <Button
+          variant="ghost"
           type="button"
           disabled={isSubmitting}
           onClick={close}
         >
           Cancelar
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -425,19 +431,19 @@ export function EditItemForm({
   if (product.isError)
     return (
       <div className="space-y-2">
-        <p role="alert" className="text-error">
+        <p role="alert" className="text-destructive">
           No se pudieron cargar las opciones del producto.
         </p>
-        <button
+        <Button
           type="button"
-          className="btn btn-outline"
+          variant="outline"
           onClick={() => void product.refetch()}
         >
           Reintentar
-        </button>
-        <button type="button" className="btn btn-ghost" onClick={close}>
+        </Button>
+        <Button type="button" variant="ghost" onClick={close}>
           Cancelar
-        </button>
+        </Button>
       </div>
     );
   return (

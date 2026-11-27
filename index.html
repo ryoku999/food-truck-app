@@ -1,25 +1,10 @@
 <!doctype html>
-<html
-  lang="es-PE"
-  data-theme="lemonade"
-  data-app-themes="sunset light dark cupcake nord night valentine abyss emerald retro garden forest lemonade caramellatte"
->
+<html lang="es-PE">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script>
-      try {
-        const root = document.documentElement;
-        const saved = localStorage.getItem("app-theme");
-        if (saved && root.dataset.appThemes.split(" ").includes(saved)) {
-          root.dataset.theme = saved;
-        }
-      } catch {
-        // Keep Sunset when browser storage is unavailable.
-      }
-    </script>
-    <title>food truck</title>
+    <title>Food Truck</title>
   </head>
   <body>
     <div id="root"></div>

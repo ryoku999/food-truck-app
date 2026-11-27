@@ -1,3 +1,6 @@
+import { Button, buttonVariants } from "@/presentation/components/ui/button";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Alert } from "@/presentation/components/ui/alert";
 import { useConfirm } from "@/presentation/components/use-confirm";
 import {
   printInProgress,
@@ -52,12 +55,12 @@ export function TicketPanel({
     latest?.status === "FAILED";
   if (role !== "CASHIER" && !management) return null;
   return (
-    <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4">
+    <section className="space-y-3 rounded-xl border border-border bg-card p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold">
           {prebill ? "Precuenta" : "Ticket de cliente"}
         </h2>
-        <Link className="btn btn-outline" to={`${path}?orderId=${orderId}`}>
+        <Link className={buttonVariants({ variant: "outline" })} to={`${path}?orderId=${orderId}`}>
           Ver trabajos del pedido
         </Link>
       </div>
@@ -77,8 +80,8 @@ export function TicketPanel({
       {management && enabled && (
         <label className="grid gap-1">
           Impresora
-          <select
-            className="select w-full sm:max-w-sm"
+          <NativeSelect
+            className="w-full sm:max-w-sm"
             value={printerId}
             onChange={(event) => setPrinterId(event.target.value)}
           >
@@ -95,32 +98,32 @@ export function TicketPanel({
                   {item.name}
                 </option>
               ))}
-          </select>
+          </NativeSelect>
         </label>
       )}
       {jobs.isPending && <p role="status">Consultando trabajos…</p>}
       {jobs.isError && (
-        <div className="alert alert-error" role="alert">
+        <Alert variant="destructive" role="alert">
           {apiError(jobs.error, "No se pudo consultar la cola del pedido.")}
-          <button className="btn" onClick={() => void jobs.refetch()}>
+          <Button type="submit" variant="outline" onClick={() => void jobs.refetch()}>
             Reintentar consulta
-          </button>
-        </div>
+          </Button>
+        </Alert>
       )}
       {enqueue.isError && (
-        <p role="alert" className="alert alert-error">
+        <Alert role="alert" variant="destructive">
           {apiError(
             enqueue.error,
             "No se confirmó el envío. Revisa la cola antes de generar otro ticket.",
           )}
-        </p>
+        </Alert>
       )}
       {latest && (
         <div className="space-y-2">
           <p className="flex flex-wrap items-center gap-2">
             {prebill ? "Última precuenta" : "Último ticket"}{" "}
             <PrintJobBadge job={latest} />{" "}
-            <Link className="link" to={`${path}/${latest.id}`}>
+            <Link className="text-link" to={`${path}/${latest.id}`}>
               Ver detalle
             </Link>
           </p>
@@ -131,8 +134,8 @@ export function TicketPanel({
           />
         </div>
       )}
-      <button
-        className="btn btn-primary min-h-11"
+      <Button
+        type="submit" className="min-h-11"
         disabled={blocked || jobs.isFetching}
         onClick={async () => {
           if (blocked || submitting.current) return;
@@ -193,7 +196,7 @@ export function TicketPanel({
             : latest?.status === "PRINTED"
               ? "Encolar copia"
               : "Encolar ticket"}
-      </button>
+      </Button>
     </section>
   );
 }

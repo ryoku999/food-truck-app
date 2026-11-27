@@ -1,3 +1,9 @@
+import { Button, buttonVariants } from "@/presentation/components/ui/button";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Input } from "@/presentation/components/ui/input";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Card } from "@/presentation/components/ui/card";
+import { Badge } from "@/presentation/components/ui/badge";
 import type { OrderStatus } from "@/core/entities/order.entity";
 import { useOrders } from "@/infrastructure/hooks/use-orders";
 import { useBusiness } from "@/infrastructure/hooks/use-management";
@@ -42,8 +48,8 @@ export default function AccountsPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-3xl font-bold">Cuentas</h1>
-        <Link className="btn btn-outline" to="../session" relative="path">
+        <h1 className="text-[1.75rem] font-semibold tracking-tight sm:text-4xl">Cuentas</h1>
+        <Link className={buttonVariants({ variant: "outline" })} to="../session" relative="path">
           Turno de caja
         </Link>
       </div>
@@ -59,8 +65,7 @@ export default function AccountsPage() {
         {!byTicket && (
           <label className="grid gap-1">
             Estado
-            <select
-              className="select"
+            <NativeSelect
               value={status}
               onChange={(event) => {
                 const selected = statuses.find(
@@ -77,13 +82,12 @@ export default function AccountsPage() {
                   {orderLabels[value]}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
         )}
         <label className="grid gap-1">
           Buscar por
-          <select
-            className="select"
+          <NativeSelect
             value={searchBy}
             onChange={(event) => {
               setSearchBy(event.target.value === "ticket" ? "ticket" : "order");
@@ -94,12 +98,12 @@ export default function AccountsPage() {
           >
             <option value="order">Pedido o cliente</option>
             <option value="ticket">N.º de ticket</option>
-          </select>
+          </NativeSelect>
         </label>
         <label className="grid grow gap-1 sm:max-w-xs">
           {byTicket ? "Número impreso en el ticket" : "Pedido o cliente"}
-          <input
-            className="input w-full"
+          <Input
+            className="w-full"
             maxLength={byTicket ? 10 : 100}
             inputMode={byTicket ? "numeric" : undefined}
             placeholder={byTicket ? "000123" : undefined}
@@ -107,23 +111,23 @@ export default function AccountsPage() {
             onChange={(event) => setInput(event.target.value)}
           />
         </label>
-        <button className="btn btn-primary" disabled={byTicket && !validTicket}>
+        <Button type="submit" disabled={byTicket && !validTicket}>
           Buscar
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          className="btn btn-outline"
+          variant="outline"
           disabled={orders.isFetching || (byTicket && !search)}
           onClick={() => void orders.refetch()}
         >
           Actualizar
-        </button>
+        </Button>
       </form>
       {orders.isLoading && <p role="status">Cargando cuentas…</p>}
       {orders.isError && (
-        <p className="alert alert-error" role="alert">
+        <Alert variant="destructive" role="alert">
           {apiError(orders.error, "No se pudieron cargar las cuentas.")}
-        </p>
+        </Alert>
       )}
       {orders.data?.items.length === 0 && (
         <p>
@@ -134,16 +138,16 @@ export default function AccountsPage() {
       )}
       <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {orders.data?.items.map((order) => (
-          <li
+          <Card
             key={order.id}
-            className="card border border-base-300 bg-base-100"
+            as="li"
           >
-            <Link to={order.id} className="card-body">
+            <Link to={order.id} className="flex flex-col gap-4 p-4 sm:p-5">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="card-title">Pedido #{order.number}</h2>
-                <span className="badge badge-outline">
+                <h2 className="text-lg leading-snug font-semibold">Pedido #{order.number}</h2>
+                <Badge variant="outline">
                   {orderLabels[order.status]}
-                </span>
+                </Badge>
               </div>
               <p>
                 {order.tables.length
@@ -157,7 +161,7 @@ export default function AccountsPage() {
                 Total del pedido: {money.format(Number(order.total))}
               </p>
             </Link>
-          </li>
+          </Card>
         ))}
       </ul>
       {(page > 1 || (orders.data?.meta.pageCount ?? 0) > 1) && (
@@ -165,21 +169,21 @@ export default function AccountsPage() {
           className="flex items-center gap-2"
           aria-label="Paginación de cuentas"
         >
-          <button
-            className="btn btn-outline"
+          <Button
+            type="submit" variant="outline"
             disabled={page <= 1}
             onClick={() => setPage(page - 1)}
           >
             Anterior
-          </button>
+          </Button>
           <span>Pág. {page}</span>
-          <button
-            className="btn btn-outline"
+          <Button
+            type="submit" variant="outline"
             disabled={page >= (orders.data?.meta.pageCount ?? 0)}
             onClick={() => setPage(page + 1)}
           >
             Siguiente
-          </button>
+          </Button>
         </nav>
       )}
     </div>

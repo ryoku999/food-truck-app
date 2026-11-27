@@ -1,3 +1,4 @@
+import { Button } from "@/presentation/components/ui/button";
 import { authService } from "@/infrastructure/services/auth.service";
 import { useAuthStore } from "@/infrastructure/storage/auth-storage";
 import { isAxiosError } from "axios";
@@ -31,21 +32,21 @@ export function SessionBootstrap({ children }: PropsWithChildren) {
   if (state === "ready") return children;
 
   return (
-    <main className="grid min-h-dvh place-items-center bg-base-200 p-4 text-base-content">
+    <main className="grid min-h-dvh place-items-center bg-muted p-4 text-foreground">
       {state === "loading" ? (
         <p role="status">Verificando sesión…</p>
       ) : (
         <div className="space-y-4 text-center">
           <p role="alert">No se pudo conectar con el servidor.</p>
-          <button
-            className="btn btn-primary"
+          <Button
+            type="submit"
             onClick={() => {
               setState("loading");
               setAttempt((value) => value + 1);
             }}
           >
             Reintentar
-          </button>
+          </Button>
         </div>
       )}
     </main>

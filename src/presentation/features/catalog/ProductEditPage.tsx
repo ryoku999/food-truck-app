@@ -1,3 +1,6 @@
+import { Alert } from "@/presentation/components/ui/alert";
+import { Button, buttonVariants } from "@/presentation/components/ui/button";
+import { Badge } from "@/presentation/components/ui/badge";
 import type { Product } from "@/core/entities/catalog.entity";
 import {
   useCatalogActions,
@@ -55,12 +58,12 @@ export default function ProductEditPage() {
   }
   if (product.isError || !product.data) {
     return (
-      <div className="alert alert-error" role="alert">
+      <Alert variant="destructive" role="alert">
         {apiError(product.error, "No se pudo cargar el producto.")}
-        <Link className="btn btn-sm" to="../.." relative="path">
+        <Link className={buttonVariants({ variant: "outline", size: "sm" })} to="../.." relative="path">
           Volver al catálogo
         </Link>
-      </div>
+      </Alert>
     );
   }
 
@@ -113,23 +116,23 @@ export default function ProductEditPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Link className="link link-hover text-sm" to="../.." relative="path">
+          <Link className="text-link hover:underline text-sm" to="../.." relative="path">
             ← Volver al catálogo
           </Link>
           <p className="mt-3 text-sm opacity-70">Producto seleccionado</p>
-          <h1 className="text-3xl font-bold">{item.name}</h1>
+          <h1 className="text-[1.75rem] font-semibold tracking-tight sm:text-4xl">{item.name}</h1>
           <p className="mt-1 opacity-80">
             Categoría: {item.category.name} · Orden: {item.sortOrder}
           </p>
         </div>
-        <span className={`badge ${item.available ? "badge-success" : "badge-ghost"}`}>
+        <Badge variant={item.available ? "success" : "ghost"}>
           {item.available ? "Disponible" : "Agotado"}
-        </span>
+        </Badge>
       </div>
       {notice && (
-        <p className="alert alert-success" role="status">
+        <Alert variant="success" role="status">
           {notice}
-        </p>
+        </Alert>
       )}
       {editing ? (
         <CatalogForm
@@ -140,21 +143,21 @@ export default function ProductEditPage() {
           }}
         />
       ) : (
-        <button className="btn btn-outline" onClick={() => setEditing(true)}>
+        <Button type="submit" variant="outline" onClick={() => setEditing(true)}>
           Editar producto nuevamente
-        </button>
+        </Button>
       )}
       <CatalogImages resource="products" item={item} />
       <section className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-box border border-base-300 bg-base-100 p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <p className="text-sm opacity-70">Precio base</p>
           <p className="text-xl font-bold">{item.basePrice}</p>
         </div>
-        <div className="rounded-box border border-base-300 bg-base-100 p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <p className="text-sm opacity-70">Variantes</p>
           <p className="text-xl font-bold">{item.variants.length}</p>
         </div>
-        <div className="rounded-box border border-base-300 bg-base-100 p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <p className="text-sm opacity-70">Imágenes</p>
           <p className="text-xl font-bold">{item.images.length}</p>
         </div>

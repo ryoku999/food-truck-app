@@ -1,3 +1,10 @@
+import { Card, CardContent } from "@/presentation/components/ui/card";
+import { Input } from "@/presentation/components/ui/input";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Textarea } from "@/presentation/components/ui/textarea";
+import { Label } from "@/presentation/components/ui/label";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Button } from "@/presentation/components/ui/button";
 import {
   productionCodes,
   type DiningArea,
@@ -99,8 +106,8 @@ export function LocalForm({
     defaultValues: defaults(editor),
   });
   return (
-    <form
-      className="card border border-base-300 bg-base-100"
+    <Card
+      as="form"
       noValidate
       onSubmit={handleSubmit((values) => {
         const id = editor.item?.id;
@@ -142,31 +149,31 @@ export function LocalForm({
         }
       })}
     >
-      <div className="card-body">
-        <h2 className="card-title">
+      <CardContent>
+        <h2 className="text-lg leading-snug font-semibold">
           {editor.item ? "Editar" : "Crear"}{" "}
           {editor.kind === "tables" ? "mesa" : "área"}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="grid gap-1">
             Nombre{editor.kind === "tables" ? " (opcional)" : ""}
-            <input className="input w-full" {...register("name")} />
+            <Input className="w-full" {...register("name")} />
           </label>
           {editor.kind === "production" && (
             <label className="grid gap-1">
               Destino
-              <select className="select w-full" {...register("code")}>
+              <NativeSelect className="w-full" {...register("code")}>
                 <option value="KITCHEN">Cocina</option>
                 <option value="BAR">Barra</option>
                 <option value="NONE">Sin producción</option>
-              </select>
+              </NativeSelect>
             </label>
           )}
           {editor.kind === "dining" && (
             <label className="grid gap-1">
               Descripción
-              <textarea
-                className="textarea w-full"
+              <Textarea
+                className="w-full"
                 {...register("description")}
               />
             </label>
@@ -175,7 +182,7 @@ export function LocalForm({
             <>
               <label className="grid gap-1">
                 Área del local
-                <select className="select w-full" {...register("diningAreaId")}>
+                <NativeSelect className="w-full" {...register("diningAreaId")}>
                   <option value="">Selecciona un área</option>
                   {areas
                     .filter(
@@ -188,49 +195,48 @@ export function LocalForm({
                         {area.active ? "" : " (inactiva)"}
                       </option>
                     ))}
-                </select>
+                </NativeSelect>
               </label>
               <label className="grid gap-1">
                 Número
-                <input
+                <Input
                   type="number"
                   min={1}
-                  className="input w-full"
+                  className="w-full"
                   {...register("number", { valueAsNumber: true })}
                 />
               </label>
               <label className="grid gap-1">
                 Capacidad (opcional)
-                <input
+                <Input
                   inputMode="numeric"
-                  className="input w-full"
+                  className="w-full"
                   {...register("capacity")}
                 />
               </label>
-              <label className="label">
+              <Label>
                 <input
                   type="checkbox"
-                  className="checkbox"
                   {...register("active")}
                 />{" "}
                 Mesa activa
-              </label>
+              </Label>
             </>
           )}
           {editor.kind !== "production" && (
             <label className="grid gap-1">
               Orden
-              <input
+              <Input
                 type="number"
                 min={0}
-                className="input w-full"
+                className="w-full"
                 {...register("sortOrder", { valueAsNumber: true })}
               />
             </label>
           )}
         </div>
         {Object.entries(errors).map(([field, error]) => (
-          <p key={field} role="alert" className="text-sm text-error">
+          <p key={field} role="alert" className="text-sm text-destructive">
             {field === "sortOrder"
               ? "Orden"
               : field === "number"
@@ -240,24 +246,24 @@ export function LocalForm({
           </p>
         ))}
         {mutation.isError && (
-          <p className="alert alert-error" role="alert">
+          <Alert variant="destructive" role="alert">
             {apiError(mutation.error, "No se pudo guardar. Revisa los datos.")}
-          </p>
+          </Alert>
         )}
-        <div className="card-actions">
-          <button className="btn btn-primary" disabled={mutation.isPending}>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? "Guardando…" : "Guardar"}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="btn btn-ghost"
+            variant="ghost"
             disabled={mutation.isPending}
             onClick={() => close()}
           >
             Cancelar
-          </button>
+          </Button>
         </div>
-      </div>
-    </form>
+      </CardContent>
+    </Card>
   );
 }

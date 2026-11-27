@@ -1,17 +1,18 @@
 {
-  "version": 1,
+  "version": 2,
   "skills": {
-    "daisyui": {
-      "source": "saadeghi/daisyui",
-      "sourceType": "github",
-      "skillPath": "skills/daisyui/SKILL.md",
-      "computedHash": "51be9420b195cc8935591595c315d5bca38f889f3750942d816134bd70f72a6b"
-    },
     "frontend-design": {
       "source": "anthropics/skills",
       "sourceType": "github",
       "skillPath": "skills/frontend-design/SKILL.md",
-      "computedHash": "106acf230014cbb43ca34e6410371321b56ca742f9ee0442e8ec05bf02eb0384"
+      "computedHash": "83485963700bcf11d5bf78118facb301676b69d918fee2e45a95e7f1a2840f6c"
+    },
+    "shadcn": {
+      "source": "shadcn-ui/ui",
+      "commit": "0e5b2e621a9ee4cf6a604bbe6c5c0d5b70561eb4",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "computedHash": "388962d16c7a4f13aaeee0d8f128e50a87df8553d42ef7988c39c0e1c74a40e8"
     }
   }
 }

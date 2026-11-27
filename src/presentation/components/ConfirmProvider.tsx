@@ -1,41 +1,52 @@
 import {
   useCallback,
   useEffect,
-  useId,
   useMemo,
   useRef,
   useState,
   type ReactNode,
 } from "react";
-import { createPortal } from "react-dom";
 import {
   ConfirmationContext,
   type ConfirmationOptions,
 } from "./confirmation-context";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 
 export function ConfirmProvider({ children }: { children: ReactNode }) {
   const [options, setOptions] = useState<ConfirmationOptions | null>(null);
+  const [open, setOpen] = useState(false);
   const pending = useRef<{
     owner: string;
     resolve: (accepted: boolean) => void;
   } | null>(null);
-  const dialog = useRef<HTMLDialogElement>(null);
-  const titleId = useId();
-  const messageId = useId();
+  const cancelButton = useRef<HTMLButtonElement>(null);
+  const trigger = useRef<HTMLElement | null>(null);
 
   const finish = useCallback((accepted: boolean) => {
     const request = pending.current;
     pending.current = null;
-    setOptions(null);
+    setOpen(false);
     request?.resolve(accepted);
   }, []);
 
   const ask = useCallback((owner: string, next: ConfirmationOptions) => {
-    // Ignore repeated requests while the current confirmation is visible.
     if (pending.current) return Promise.resolve(false);
     return new Promise<boolean>((resolve) => {
       pending.current = { owner, resolve };
+      trigger.current = document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
       setOptions(next);
+      setOpen(true);
     });
   }, []);
 
@@ -48,11 +59,6 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
 
   const service = useMemo(() => ({ ask, cancel }), [ask, cancel]);
 
-  useEffect(() => {
-    if (options && !dialog.current?.open) dialog.current?.showModal();
-    if (!options && dialog.current?.open) dialog.current.close();
-  }, [options]);
-
   useEffect(
     () => () => {
       pending.current?.resolve(false);
@@ -64,51 +70,27 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   return (
     <ConfirmationContext.Provider value={service}>
       {children}
-      {createPortal(
-        <dialog
-          ref={dialog}
-          className="modal"
-          aria-labelledby={titleId}
-          aria-describedby={messageId}
-          onCancel={(event) => {
-            event.preventDefault();
-            finish(false);
-          }}
+      <AlertDialog open={open} onOpenChange={(next) => { if (!next) finish(false); }}>
+        <AlertDialogContent
+          initialFocus={cancelButton}
+          finalFocus={trigger}
+          onDismiss={() => finish(false)}
+          className="max-h-[calc(100dvh-2rem)] overflow-y-auto"
         >
-          <div className="modal-box max-w-md bg-base-100 text-base-content">
-            <h2 id={titleId} className="text-lg font-bold">
-              {options?.title ?? "Confirmar acción"}
-            </h2>
-            <p id={messageId} className="py-4 whitespace-pre-wrap">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{options?.title ?? "Confirmar acción"}</AlertDialogTitle>
+            <AlertDialogDescription className="whitespace-pre-wrap">
               {options?.message}
-            </p>
-            <div className="modal-action flex-wrap">
-              <button
-                type="button"
-                className="btn btn-ghost min-h-11"
-                autoFocus
-                onClick={() => finish(false)}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary min-h-11"
-                onClick={() => finish(true)}
-              >
-                {options?.acceptLabel ?? "Aceptar"}
-              </button>
-            </div>
-          </div>
-          <button
-            type="button"
-            className="modal-backdrop"
-            aria-label="Cancelar confirmación"
-            onClick={() => finish(false)}
-          />
-        </dialog>,
-        document.body,
-      )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel ref={cancelButton}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction type="button" onClick={() => finish(true)}>
+              {options?.acceptLabel ?? "Aceptar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ConfirmationContext.Provider>
   );
 }

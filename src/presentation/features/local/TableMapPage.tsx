@@ -1,3 +1,9 @@
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Label } from "@/presentation/components/ui/label";
+import { Button, buttonVariants } from "@/presentation/components/ui/button";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Card, CardContent } from "@/presentation/components/ui/card";
+import { Badge } from "@/presentation/components/ui/badge";
 import type { TableStatus } from "@/core/entities/local.entity";
 import { useBusiness } from "@/infrastructure/hooks/use-management";
 import {
@@ -9,15 +15,18 @@ import { useAuthStore } from "@/infrastructure/storage/auth-storage";
 import { apiError } from "@/shared/utils/api-error";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { RefreshCw } from "lucide-react";
+import { Skeleton } from "@/presentation/components/ui/skeleton";
 
-const statuses: Record<TableStatus, { label: string; badge: string }> = {
-  AVAILABLE: { label: "Disponible", badge: "badge-success" },
-  OCCUPIED: { label: "Ocupada", badge: "badge-warning" },
-  DISABLED: { label: "Deshabilitada", badge: "badge-ghost" },
-};
+const statuses = {
+  AVAILABLE: { label: "Disponible", badge: "success" },
+  OCCUPIED: { label: "Ocupada", badge: "warning" },
+  DISABLED: { label: "Deshabilitada", badge: "ghost" },
+} as const satisfies Record<TableStatus, { label: string; badge: string }>;
 
 export default function TableMapPage() {
   const role = useAuthStore((state) => state.user?.userRole);
+  const waiter = role === "WAITER";
   const canManage = role === "ADMIN" || role === "MANAGER";
   const canChangeStatus = canManage || role === "CASHIER";
   const [area, setArea] = useState("");
@@ -26,6 +35,7 @@ export default function TableMapPage() {
   const map = useTableMap(area || undefined, inactive && canManage);
   const business = useBusiness();
   const { status } = useLocalActions();
+  const grid = waiter ? "grid gap-3" : "grid gap-3 @lg:grid-cols-2 @4xl:grid-cols-3";
   const currency = business.data?.currencyCode ?? "PEN";
   const money = new Intl.NumberFormat("es-PE", {
     style: "currency",
@@ -33,12 +43,12 @@ export default function TableMapPage() {
   });
   return (
     <div className="space-y-5">
-      <h1 className="text-3xl font-bold">Mapa de mesas</h1>
-      <div className="flex flex-wrap items-end gap-3 rounded-box border border-base-300 bg-base-100 p-4">
-        <label className="grid gap-1">
+      <h1 className="text-[1.75rem] font-semibold tracking-tight @lg:text-4xl">Mapa de mesas</h1>
+      <div className="clay-panel flex flex-wrap items-end gap-3 rounded-xl border bg-card p-4">
+        <label className="grid min-w-0 flex-1 gap-1 text-sm @lg:flex-none">
           Área
-          <select
-            className="select w-full"
+          <NativeSelect
+            className="w-full"
             value={area}
             onChange={(event) => setArea(event.target.value)}
           >
@@ -50,12 +60,11 @@ export default function TableMapPage() {
                   {item.name}
                 </option>
               ))}
-          </select>
+          </NativeSelect>
         </label>
         {canManage && (
-          <label className="label min-h-11">
+          <Label className="min-h-11">
             <input
-              className="checkbox"
               type="checkbox"
               checked={inactive}
               onChange={(event) => {
@@ -64,31 +73,42 @@ export default function TableMapPage() {
               }}
             />{" "}
             Incluir inactivas
-          </label>
+          </Label>
         )}
-        <button
-          className="btn btn-outline"
+        <Button
+          type="button"
+          variant="outline"
           disabled={map.isFetching}
           onClick={() => void map.refetch()}
         >
+          <RefreshCw className={map.isFetching ? "motion-safe:animate-spin" : undefined} aria-hidden="true" />
           Actualizar
-        </button>
+        </Button>
       </div>
       {areas.isError && (
-        <p className="text-sm text-error" role="alert">
+        <p className="text-sm text-destructive" role="alert">
           No se pudo cargar el filtro por área.
         </p>
       )}
       {status.isError && (
-        <p className="alert alert-error" role="alert">
+        <Alert variant="destructive" role="alert">
           {apiError(status.error, "No se pudo cambiar el estado.")}
-        </p>
+        </Alert>
       )}
-      {map.isPending && <p role="status">Cargando mesas…</p>}
+      {map.isPending && (
+        <div role="status">
+          <span className="sr-only">Cargando mesas…</span>
+          <div aria-hidden="true" className={grid}>
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+          </div>
+        </div>
+      )}
       {map.isError && (
-        <p className="alert alert-error" role="alert">
+        <Alert variant="destructive" role="alert">
           {apiError(map.error, "No se pudo cargar el mapa.")}
-        </p>
+        </Alert>
       )}
       {map.data?.areas.length === 0 && <p>No hay áreas para este filtro.</p>}
       {map.data?.areas.map((section) => (
@@ -100,34 +120,36 @@ export default function TableMapPage() {
           {section.tables.length === 0 && (
             <p>Esta área aún no tiene mesas visibles.</p>
           )}
-          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <ul className={grid}>
             {section.tables.map((table) => {
               const order = table.openOrder;
               const joined =
                 order?.joinedTables.filter((item) => item.id !== table.id) ??
                 [];
               return (
-                <li
+                <Card
                   key={table.id}
-                  className="card border border-base-300 bg-base-100"
+                  as="li"
                 >
-                  <div className="card-body gap-3">
+                  <CardContent className="gap-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h3 className="card-title">
+                      <h3 className="text-lg leading-snug font-semibold">
                         {table.name || `Mesa ${table.number}`}
                       </h3>
-                      <span
-                        className={`badge ${table.active ? statuses[table.status].badge : "badge-ghost"}`}
+                      <Badge
+                        variant={table.active ? statuses[table.status].badge : "ghost"}
                       >
                         {table.active
                           ? statuses[table.status].label
                           : "Inactiva"}
-                      </span>
+                      </Badge>
                     </div>
-                    {table.capacity != null && <p>{table.capacity} personas</p>}
+                    {table.capacity != null && (
+                      <p className="text-sm text-muted-foreground">{table.capacity} personas</p>
+                    )}
                     {order && (
-                      <div className="rounded-box bg-base-200 p-3">
-                        <p className="font-semibold">
+                      <div className="rounded-xl bg-muted p-3">
+                        <p className="font-semibold tabular-nums">
                           Pedido #{order.number} ·{" "}
                           {money.format(Number(order.total))}
                         </p>
@@ -147,7 +169,7 @@ export default function TableMapPage() {
                     {role === "WAITER" &&
                       (order ? (
                         <Link
-                          className="btn btn-outline min-h-11"
+                          className={buttonVariants({ variant: "outline", className: "min-h-11" })}
                           to={`/waiter/orders/${order.id}`}
                         >
                           Ver pedido
@@ -157,7 +179,7 @@ export default function TableMapPage() {
                         table.active &&
                         table.status === "AVAILABLE" && (
                           <Link
-                            className="btn btn-primary min-h-11"
+                            className={buttonVariants({ className: "min-h-11" })}
                             to={`/waiter/orders/new?table=${encodeURIComponent(table.id)}`}
                           >
                             Tomar pedido
@@ -169,8 +191,8 @@ export default function TableMapPage() {
                       table.active &&
                       !order &&
                       table.status !== "OCCUPIED" && (
-                        <button
-                          className="btn btn-outline min-h-11 self-start"
+                        <Button
+                          type="submit" variant="outline" className="min-h-11 self-start"
                           disabled={status.isPending}
                           onClick={() => {
                             const next =
@@ -183,10 +205,10 @@ export default function TableMapPage() {
                           {table.status === "DISABLED"
                             ? "Habilitar mesa"
                             : "Deshabilitar mesa"}
-                        </button>
+                        </Button>
                       )}
-                  </div>
-                </li>
+                  </CardContent>
+                </Card>
               );
             })}
           </ul>
