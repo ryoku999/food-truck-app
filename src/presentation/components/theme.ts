@@ -28,6 +28,10 @@ export function applyTheme(theme: Theme) {
   const root = document.documentElement;
   root.classList.toggle("dark", theme === "dark");
   root.classList.toggle("light", theme === "light");
+  document.querySelector('meta[name="theme-color"]')?.setAttribute(
+    "content",
+    theme === "dark" ? "#2e252c" : "#f4e2c8",
+  );
 }
 
 export function saveTheme(theme: Theme) {
