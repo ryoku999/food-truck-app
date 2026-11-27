@@ -8,13 +8,16 @@ import {
   ChefHat,
   ClipboardList,
   LayoutGrid,
+  LoaderCircle,
   LogOut,
   Printer,
+  Radio,
   ReceiptText,
   Settings2,
   Store,
   Users,
   Wallet,
+  WifiOff,
   type LucideIcon,
 } from "lucide-react";
 import { Link, matchPath, NavLink, Outlet, useLocation } from "react-router-dom";
@@ -34,7 +37,6 @@ import { Button, buttonVariants } from "../components/ui/button";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
   SidebarHeader,
@@ -117,7 +119,6 @@ function PanelSidebar({
   pathname: string;
 }) {
   const { setOpenMobile } = useSidebar();
-  const operations = useOperationsState();
 
   return (
     <Sidebar variant="floating" collapsible="icon" className="md:p-3">
@@ -163,13 +164,27 @@ function PanelSidebar({
           ))}
         </nav>
       </SidebarContent>
-      <SidebarFooter className="px-4 pb-[max(1rem,env(safe-area-inset-bottom))] group-data-[collapsible=icon]:hidden">
-        <Badge variant={operations === "online" ? "success" : "secondary"}>
-          <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" />
-          {connectionLabels[operations]}
-        </Badge>
-      </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function ConnectionStatus() {
+  const operations = useOperationsState();
+  const label = connectionLabels[operations];
+  const live = operations === "online";
+  const connecting = operations === "connecting";
+  const Icon = live ? Radio : connecting ? LoaderCircle : WifiOff;
+
+  return (
+    <Badge
+      role="status"
+      title={label}
+      variant={live ? "success" : connecting ? "warning" : "secondary"}
+      className="shrink-0 whitespace-nowrap"
+    >
+      <Icon aria-hidden="true" className={connecting ? "motion-safe:animate-spin" : undefined} />
+      <span className={live ? undefined : "sr-only md:not-sr-only"}>{label}</span>
+    </Badge>
   );
 }
 
@@ -179,6 +194,7 @@ function SessionActions({ name }: { name?: string }) {
 
   return (
     <div className="ml-auto flex shrink-0 items-center gap-1">
+      <ConnectionStatus />
       {name && <span className="hidden max-w-32 truncate px-2 text-sm font-medium lg:inline">{name}</span>}
       <ModeToggle />
       <Tooltip>
@@ -219,7 +235,7 @@ function WaiterLayout({ home, title }: { home: string; title: string }) {
     <div className="clay-stage min-h-dvh">
       <SkipLink />
       <div className="mx-auto min-h-dvh w-full max-w-lg bg-background sm:border-x">
-        <header className="relative flex min-h-16 items-center gap-2 border-b px-3">
+        <header className="clay-sticky-header flex min-h-16 items-center gap-2 px-3">
           <Brand home={home} title={title} />
           <SessionActions />
         </header>
@@ -298,27 +314,29 @@ export default function RoleLayout({ title }: { title: string }) {
         <SkipLink />
         <PanelSidebar groups={groups} home={home} title={title} pathname={pathname} />
         <SidebarInset id="panel-principal" tabIndex={-1} className="min-w-0 bg-transparent">
-          <header className="relative z-10 mx-auto flex min-h-16 w-full max-w-340 items-center gap-1 px-2 sm:gap-3 sm:px-5 md:px-6 lg:px-8">
-            <Tooltip>
-              <TooltipTrigger render={<SidebarTrigger />} />
-              <TooltipContent>Menú de navegación</TooltipContent>
-            </Tooltip>
-            <Breadcrumb aria-label="Ubicación en el panel" className="min-w-0">
-              <BreadcrumbList className="flex-nowrap gap-1 text-xs sm:gap-2 sm:text-sm">
-                <BreadcrumbItem className={current ? "hidden shrink-0 sm:inline-flex" : "min-w-0"}>
-                  <BreadcrumbLink render={<Link to={home} />} className="truncate">{title}</BreadcrumbLink>
-                </BreadcrumbItem>
-                {current && (
-                  <>
-                    <BreadcrumbSeparator className="hidden shrink-0 sm:inline-flex" />
-                    <BreadcrumbItem className="min-w-0">
-                      <BreadcrumbPage className="truncate font-medium">{current.label}</BreadcrumbPage>
-                    </BreadcrumbItem>
-                  </>
-                )}
-              </BreadcrumbList>
-            </Breadcrumb>
-            <SessionActions name={user?.firstName || user?.username} />
+          <header className="clay-sticky-header">
+            <div className="relative mx-auto flex min-h-16 w-full max-w-340 items-center gap-1 px-2 sm:gap-3 sm:px-5 md:px-6 lg:px-8">
+              <Tooltip>
+                <TooltipTrigger render={<SidebarTrigger />} />
+                <TooltipContent>Menú de navegación</TooltipContent>
+              </Tooltip>
+              <Breadcrumb aria-label="Ubicación en el panel" className="min-w-0">
+                <BreadcrumbList className="flex-nowrap gap-1 text-xs sm:gap-2 sm:text-sm">
+                  <BreadcrumbItem className={current ? "hidden shrink-0 sm:inline-flex" : "min-w-0"}>
+                    <BreadcrumbLink render={<Link to={home} />} className="truncate">{title}</BreadcrumbLink>
+                  </BreadcrumbItem>
+                  {current && (
+                    <>
+                      <BreadcrumbSeparator className="hidden shrink-0 sm:inline-flex" />
+                      <BreadcrumbItem className="min-w-0">
+                        <BreadcrumbPage className="truncate font-medium">{current.label}</BreadcrumbPage>
+                      </BreadcrumbItem>
+                    </>
+                  )}
+                </BreadcrumbList>
+              </Breadcrumb>
+              <SessionActions name={user?.firstName || user?.username} />
+            </div>
           </header>
           <div className="@container mx-auto w-full max-w-340 p-4 sm:p-6 lg:px-8 lg:pb-8">
             <Outlet />
