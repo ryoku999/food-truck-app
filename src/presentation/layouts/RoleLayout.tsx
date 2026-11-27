@@ -124,7 +124,7 @@ function PanelSidebar({
       <SidebarHeader className="px-3 pt-4 pb-3 group-data-[collapsible=icon]:px-1">
         <Brand home={home} title={title} />
       </SidebarHeader>
-      <SidebarContent className="px-1 group-data-[collapsible=icon]:px-0">
+      <SidebarContent className="clay-sidebar-scrollbar px-1 group-data-[collapsible=icon]:px-0">
         <nav aria-label="Panel" className="space-y-1">
           {groups.map(({ title: groupTitle, links }) => (
             <SidebarGroup key={groupTitle} className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
