@@ -1,4 +1,4 @@
-import { useLogout } from "@/infrastructure/hooks/use-auth";
+import type { LoginRes } from "@/core/entities/auth.entity";
 import { useOperationsState } from "@/infrastructure/hooks/use-operations";
 import { useAuthStore } from "@/infrastructure/storage/auth-storage";
 import { roleBasedRedirection } from "@/shared/utils/role-based-redirection";
@@ -9,7 +9,6 @@ import {
   ClipboardList,
   LayoutGrid,
   LoaderCircle,
-  LogOut,
   Printer,
   Radio,
   ReceiptText,
@@ -21,9 +20,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Link, matchPath, NavLink, Outlet, useLocation } from "react-router-dom";
+import { AccountMenu } from "../components/account-menu";
 import { ModeToggle } from "../components/mode-toggle";
-import { useConfirm } from "../components/use-confirm";
-import { Alert } from "../components/ui/alert";
 import { Badge } from "../components/ui/badge";
 import {
   Breadcrumb,
@@ -33,7 +31,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "../components/ui/breadcrumb";
-import { Button, buttonVariants } from "../components/ui/button";
+import { buttonVariants } from "../components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -98,7 +96,7 @@ function Brand({ home, title }: { home: string; title: string }) {
         <img src="/logo.png" alt="" className="size-8 object-contain" />
       </span>
       <span className="min-w-0 group-data-[collapsible=icon]:sr-only">
-        <span className="block truncate text-base leading-tight font-semibold tracking-tight">
+        <span className="block truncate text-base leading-tight font-semibold tracking-tight @max-xs:text-sm">
           Food Truck
         </span>
         <span className="block truncate text-xs text-muted-foreground">{title}</span>
@@ -183,38 +181,17 @@ function ConnectionStatus() {
       className="shrink-0 whitespace-nowrap"
     >
       <Icon aria-hidden="true" className={connecting ? "motion-safe:animate-spin" : undefined} />
-      <span className={live ? undefined : "sr-only md:not-sr-only"}>{label}</span>
+      <span className={live ? undefined : "sr-only @xl:not-sr-only"}>{label}</span>
     </Badge>
   );
 }
 
-function SessionActions({ name }: { name?: string }) {
-  const logout = useLogout();
-  const confirmAction = useConfirm();
-
+function SessionActions({ user }: { user: LoginRes | null }) {
   return (
     <div className="ml-auto flex shrink-0 items-center gap-1">
       <ConnectionStatus />
-      {name && <span className="hidden max-w-32 truncate px-2 text-sm font-medium lg:inline">{name}</span>}
       <ModeToggle />
-      <Tooltip>
-        <TooltipTrigger
-          render={<Button type="button" variant="ghost" size="icon" />}
-          aria-label={logout.isPending ? "Cerrando sesión" : "Cerrar sesión"}
-          disabled={logout.isPending}
-          onClick={async () => {
-            if (await confirmAction("¿Deseas cerrar sesión?")) logout.mutate();
-          }}
-        >
-          <LogOut aria-hidden="true" />
-        </TooltipTrigger>
-        <TooltipContent>Cerrar sesión</TooltipContent>
-      </Tooltip>
-      {logout.isError && (
-        <Alert variant="destructive" className="absolute inset-x-2 top-full z-10 mt-2 w-auto md:right-2 md:left-auto md:max-w-sm">
-          No se pudo cerrar sesión. Vuelve a intentar.
-        </Alert>
-      )}
+      <AccountMenu user={user} />
     </div>
   );
 }
@@ -230,14 +207,14 @@ function SkipLink() {
   );
 }
 
-function WaiterLayout({ home, title }: { home: string; title: string }) {
+function WaiterLayout({ home, title, user }: { home: string; title: string; user: LoginRes }) {
   return (
     <div className="clay-stage min-h-dvh">
       <SkipLink />
       <div className="mx-auto min-h-dvh w-full max-w-lg bg-background sm:border-x">
-        <header className="clay-sticky-header flex min-h-16 items-center gap-2 px-3">
+        <header className="clay-sticky-header @container flex min-h-16 items-center gap-2 px-3">
           <Brand home={home} title={title} />
-          <SessionActions />
+          <SessionActions user={user} />
         </header>
         <main
           id="panel-principal"
@@ -280,7 +257,7 @@ export default function RoleLayout({ title }: { title: string }) {
   if (user?.userRole === "WAITER") {
     return (
       <TooltipProvider delay={300}>
-        <WaiterLayout home={home} title={title} />
+        <WaiterLayout home={home} title={title} user={user} />
       </TooltipProvider>
     );
   }
@@ -315,7 +292,7 @@ export default function RoleLayout({ title }: { title: string }) {
         <PanelSidebar groups={groups} home={home} title={title} pathname={pathname} />
         <SidebarInset id="panel-principal" tabIndex={-1} className="min-w-0 bg-transparent">
           <header className="clay-sticky-header">
-            <div className="relative mx-auto flex min-h-16 w-full max-w-340 items-center gap-1 px-2 sm:gap-3 sm:px-5 md:px-6 lg:px-8">
+            <div className="@container relative mx-auto flex min-h-16 w-full max-w-340 items-center gap-1 px-2 sm:gap-3 sm:px-5 md:px-6 lg:px-8">
               <Tooltip>
                 <TooltipTrigger render={<SidebarTrigger />} />
                 <TooltipContent>Menú de navegación</TooltipContent>
@@ -335,7 +312,7 @@ export default function RoleLayout({ title }: { title: string }) {
                   )}
                 </BreadcrumbList>
               </Breadcrumb>
-              <SessionActions name={user?.firstName || user?.username} />
+              <SessionActions user={user} />
             </div>
           </header>
           <div className="@container mx-auto w-full max-w-340 p-4 sm:p-6 lg:px-8 lg:pb-8">

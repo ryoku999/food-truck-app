@@ -84,7 +84,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel ref={cancelButton}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel ref={cancelButton}>{options?.cancelLabel ?? "Cancelar"}</AlertDialogCancel>
             <AlertDialogAction type="button" onClick={() => finish(true)}>
               {options?.acceptLabel ?? "Aceptar"}
             </AlertDialogAction>
