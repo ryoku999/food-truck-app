@@ -179,11 +179,24 @@
       --scrollbar-surface: var(--sidebar);
       --scrollbar-tint: var(--sidebar-accent);
       --scrollbar-ink: var(--sidebar-ring);
+      --scrollbar-visibility: 0%;
+
+      &[data-scrolling] {
+        --scrollbar-visibility: 100%;
+      }
+
+      @media (hover: hover) {
+        &:hover {
+          --scrollbar-visibility: 100%;
+        }
+      }
     }
 
     :where(html, .clay-sidebar-scrollbar) {
-      --scrollbar-track: color-mix(in srgb, var(--scrollbar-tint) 65%, var(--scrollbar-surface));
-      --scrollbar-thumb: color-mix(in srgb, var(--scrollbar-ink) 85%, var(--scrollbar-surface));
+      --scrollbar-track-color: color-mix(in srgb, var(--scrollbar-tint) 65%, var(--scrollbar-surface));
+      --scrollbar-thumb-color: color-mix(in srgb, var(--scrollbar-ink) 85%, var(--scrollbar-surface));
+      --scrollbar-track: color-mix(in srgb, var(--scrollbar-track-color) var(--scrollbar-visibility, 100%), transparent);
+      --scrollbar-thumb: color-mix(in srgb, var(--scrollbar-thumb-color) var(--scrollbar-visibility, 100%), transparent);
       scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
       scrollbar-width: thin;
 

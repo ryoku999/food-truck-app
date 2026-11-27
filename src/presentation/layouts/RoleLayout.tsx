@@ -19,7 +19,14 @@ import {
   WifiOff,
   type LucideIcon,
 } from "lucide-react";
-import { Link, matchPath, NavLink, Outlet, useLocation } from "react-router-dom";
+import { useEffect, useRef, type UIEvent } from "react";
+import {
+  Link,
+  matchPath,
+  NavLink,
+  Outlet,
+  useLocation,
+} from "react-router-dom";
 import { AccountMenu } from "../components/account-menu";
 import { ModeToggle } from "../components/mode-toggle";
 import { Badge } from "../components/ui/badge";
@@ -64,7 +71,12 @@ type PanelGroup = { title: string; links: PanelLink[] };
 
 const waiterLinks: PanelLink[] = [
   { path: "/table-map", label: "Mesas", icon: LayoutGrid },
-  { path: "/orders", label: "Mis pedidos", icon: ClipboardList, includeChildren: true },
+  {
+    path: "/orders",
+    label: "Mis pedidos",
+    icon: ClipboardList,
+    includeChildren: true,
+  },
 ];
 
 const managementLinks: PanelLink[] = [
@@ -76,7 +88,12 @@ const managementLinks: PanelLink[] = [
 ];
 
 const operationsLinks: PanelLink[] = [
-  { path: "/print-jobs", label: "Cola de impresión", icon: Printer, includeChildren: true },
+  {
+    path: "/print-jobs",
+    label: "Cola de impresión",
+    icon: Printer,
+    includeChildren: true,
+  },
   { path: "/table-map", label: "Mapa de mesas", icon: LayoutGrid },
 ];
 
@@ -99,7 +116,9 @@ function Brand({ home, title }: { home: string; title: string }) {
         <span className="block truncate text-base leading-tight font-semibold tracking-tight @max-xs:text-sm">
           Food Truck
         </span>
-        <span className="block truncate text-xs text-muted-foreground">{title}</span>
+        <span className="block truncate text-xs text-muted-foreground">
+          {title}
+        </span>
       </span>
     </Link>
   );
@@ -117,22 +136,46 @@ function PanelSidebar({
   pathname: string;
 }) {
   const { setOpenMobile } = useSidebar();
+  const scrollTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
+  useEffect(() => () => clearTimeout(scrollTimer.current), []);
+
+  function showScrollbar(event: UIEvent<HTMLDivElement>) {
+    const content = event.currentTarget;
+    if (!content.hasAttribute("data-scrolling")) {
+      content.setAttribute("data-scrolling", "");
+    }
+    clearTimeout(scrollTimer.current);
+    scrollTimer.current = setTimeout(() => {
+      content.removeAttribute("data-scrolling");
+    }, 650);
+  }
 
   return (
     <Sidebar variant="floating" collapsible="icon" className="md:p-3">
       <SidebarHeader className="px-3 pt-4 pb-3 group-data-[collapsible=icon]:px-1">
         <Brand home={home} title={title} />
       </SidebarHeader>
-      <SidebarContent className="clay-sidebar-scrollbar px-1 group-data-[collapsible=icon]:px-0">
+      <SidebarContent
+        className="clay-sidebar-scrollbar px-1 group-data-[collapsible=icon]:px-0"
+        onScroll={showScrollbar}
+      >
         <nav aria-label="Panel" className="space-y-1">
           {groups.map(({ title: groupTitle, links }) => (
-            <SidebarGroup key={groupTitle} className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0">
+            <SidebarGroup
+              key={groupTitle}
+              className="group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-0"
+            >
               <SidebarGroupLabel>{groupTitle}</SidebarGroupLabel>
               <SidebarMenu className="gap-0.5 group-data-[collapsible=icon]:items-center">
                 {links.map(({ path, label, icon: Icon, includeChildren }) => {
                   const to = home + path;
                   const end = !includeChildren;
-                  const active = Boolean(matchPath({ path: to, end }, pathname));
+                  const active = Boolean(
+                    matchPath({ path: to, end }, pathname),
+                  );
                   return (
                     <SidebarMenuItem key={path}>
                       <SidebarMenuButton
@@ -144,7 +187,12 @@ function PanelSidebar({
                             to={to}
                             end={end}
                             onClick={(event) => {
-                              if (!event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+                              if (
+                                !event.ctrlKey &&
+                                !event.metaKey &&
+                                !event.shiftKey &&
+                                !event.altKey
+                              ) {
                                 setOpenMobile(false);
                               }
                             }}
@@ -180,8 +228,13 @@ function ConnectionStatus() {
       variant={live ? "success" : connecting ? "warning" : "secondary"}
       className="shrink-0 whitespace-nowrap"
     >
-      <Icon aria-hidden="true" className={connecting ? "motion-safe:animate-spin" : undefined} />
-      <span className={live ? undefined : "sr-only @xl:not-sr-only"}>{label}</span>
+      <Icon
+        aria-hidden="true"
+        className={connecting ? "motion-safe:animate-spin" : undefined}
+      />
+      <span className={live ? undefined : "sr-only @xl:not-sr-only"}>
+        {label}
+      </span>
     </Badge>
   );
 }
@@ -207,7 +260,15 @@ function SkipLink() {
   );
 }
 
-function WaiterLayout({ home, title, user }: { home: string; title: string; user: LoginRes }) {
+function WaiterLayout({
+  home,
+  title,
+  user,
+}: {
+  home: string;
+  title: string;
+  user: LoginRes;
+}) {
   return (
     <div className="clay-stage min-h-dvh">
       <SkipLink />
@@ -228,16 +289,18 @@ function WaiterLayout({ home, title, user }: { home: string; title: string; user
         aria-label="Panel de mozo"
         className="pointer-events-none fixed inset-x-0 bottom-0 z-20 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
       >
-        <div className="clay-raised pointer-events-auto mx-auto grid max-w-[31rem] grid-cols-2 gap-1.5 rounded-xl border bg-card p-1.5">
+        <div className="clay-raised pointer-events-auto mx-auto grid max-w-124 grid-cols-2 gap-1.5 rounded-xl border bg-card p-1.5">
           {waiterLinks.map(({ path, label, icon: Icon, includeChildren }) => (
             <NavLink
               key={path}
               to={home + path}
               end={!includeChildren}
-              className={({ isActive }) => buttonVariants({
-                variant: isActive ? "secondary" : "ghost",
-                className: "min-w-0 gap-2",
-              })}
+              className={({ isActive }) =>
+                buttonVariants({
+                  variant: isActive ? "secondary" : "ghost",
+                  className: "min-w-0 gap-2",
+                })
+              }
             >
               <Icon aria-hidden="true" />
               {label}
@@ -266,9 +329,20 @@ export default function RoleLayout({ title }: { title: string }) {
   const cashPrefix = management ? "/cashier" : "";
   const cashLinks: PanelLink[] = [
     { path: cashPrefix + "/session", label: "Turno de caja", icon: Wallet },
-    { path: cashPrefix + "/accounts", label: "Cuentas", icon: ReceiptText, includeChildren: true },
+    {
+      path: cashPrefix + "/accounts",
+      label: "Cuentas",
+      icon: ReceiptText,
+      includeChildren: true,
+    },
     ...(management
-      ? [{ path: "/cashier/settings", label: "Configurar caja", icon: Settings2 }]
+      ? [
+          {
+            path: "/cashier/settings",
+            label: "Configurar caja",
+            icon: Settings2,
+          },
+        ]
       : []),
   ];
   const groups: PanelGroup[] = [
@@ -277,36 +351,64 @@ export default function RoleLayout({ title }: { title: string }) {
     {
       title: "Operación",
       links: management
-        ? [{ path: "/printers", label: "Impresión", icon: Printer }, ...operationsLinks]
+        ? [
+            { path: "/printers", label: "Impresión", icon: Printer },
+            ...operationsLinks,
+          ]
         : operationsLinks,
     },
   ];
-  const current = groups.flatMap(({ links }) => links).find(({ path, includeChildren }) =>
-    matchPath({ path: home + path, end: !includeChildren }, pathname),
-  );
+  const current = groups
+    .flatMap(({ links }) => links)
+    .find(({ path, includeChildren }) =>
+      matchPath({ path: home + path, end: !includeChildren }, pathname),
+    );
 
   return (
     <TooltipProvider delay={300}>
       <SidebarProvider className="clay-stage">
         <SkipLink />
-        <PanelSidebar groups={groups} home={home} title={title} pathname={pathname} />
-        <SidebarInset id="panel-principal" tabIndex={-1} className="min-w-0 bg-transparent">
+        <PanelSidebar
+          groups={groups}
+          home={home}
+          title={title}
+          pathname={pathname}
+        />
+        <SidebarInset
+          id="panel-principal"
+          tabIndex={-1}
+          className="min-w-0 bg-transparent"
+        >
           <header className="clay-sticky-header">
             <div className="@container relative mx-auto flex min-h-16 w-full max-w-340 items-center gap-1 px-2 sm:gap-3 sm:px-5 md:px-6 lg:px-8">
               <Tooltip>
                 <TooltipTrigger render={<SidebarTrigger />} />
                 <TooltipContent>Menú de navegación</TooltipContent>
               </Tooltip>
-              <Breadcrumb aria-label="Ubicación en el panel" className="min-w-0">
+              <Breadcrumb
+                aria-label="Ubicación en el panel"
+                className="min-w-0"
+              >
                 <BreadcrumbList className="flex-nowrap gap-1 text-xs sm:gap-2 sm:text-sm">
-                  <BreadcrumbItem className={current ? "hidden shrink-0 sm:inline-flex" : "min-w-0"}>
-                    <BreadcrumbLink render={<Link to={home} />} className="truncate">{title}</BreadcrumbLink>
+                  <BreadcrumbItem
+                    className={
+                      current ? "hidden shrink-0 sm:inline-flex" : "min-w-0"
+                    }
+                  >
+                    <BreadcrumbLink
+                      render={<Link to={home} />}
+                      className="truncate"
+                    >
+                      {title}
+                    </BreadcrumbLink>
                   </BreadcrumbItem>
                   {current && (
                     <>
                       <BreadcrumbSeparator className="hidden shrink-0 sm:inline-flex" />
                       <BreadcrumbItem className="min-w-0">
-                        <BreadcrumbPage className="truncate font-medium">{current.label}</BreadcrumbPage>
+                        <BreadcrumbPage className="truncate font-medium">
+                          {current.label}
+                        </BreadcrumbPage>
                       </BreadcrumbItem>
                     </>
                   )}
