@@ -1,3 +1,9 @@
+import { Card, CardContent } from "@/presentation/components/ui/card";
+import { Input } from "@/presentation/components/ui/input";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Button } from "@/presentation/components/ui/button";
+import { Badge } from "@/presentation/components/ui/badge";
 import { useConfirm } from "@/presentation/components/use-confirm";
 import type {
   ManagedUser,
@@ -82,8 +88,8 @@ function UserForm({
     ["lastName", "Apellidos"],
   ] as const;
   return (
-    <form
-      className="card border border-base-300 bg-base-100"
+    <Card
+      as="form"
       noValidate
       onSubmit={handleSubmit(({ password, ...fields }) => {
         const input = { ...fields, lastName: fields.lastName || null };
@@ -92,22 +98,22 @@ function UserForm({
           create.mutate({ ...input, password }, { onSuccess });
       })}
     >
-      <div className="card-body">
-        <h2 className="card-title">
+      <CardContent>
+        <h2 className="text-lg leading-snug font-semibold">
           {user ? `Editar ${user.username}` : "Nuevo usuario"}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           {fields.map(([key, label]) => (
             <label key={key} className="grid gap-1">
               {label}
-              <input
-                className="input w-full"
+              <Input
+                className="w-full"
                 inputMode={key === "dni" ? "numeric" : "text"}
                 aria-invalid={!!errors[key]}
                 {...register(key)}
               />
               {errors[key] && (
-                <span className="text-sm text-error">
+                <span className="text-sm text-destructive">
                   {errors[key]?.message}
                 </span>
               )}
@@ -115,26 +121,26 @@ function UserForm({
           ))}
           <label className="grid gap-1">
             Rol
-            <select className="select w-full" {...register("userRole")}>
+            <NativeSelect className="w-full" {...register("userRole")}>
               {roles.map((role) => (
                 <option key={role} value={role}>
                   {roleLabels[role]}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           {!user && (
             <label className="grid gap-1">
               Contraseña inicial
-              <input
+              <Input
                 type="password"
                 autoComplete="new-password"
-                className="input w-full"
+                className="w-full"
                 aria-invalid={!!errors.password}
                 {...register("password")}
               />
               {errors.password && (
-                <span className="text-sm text-error">
+                <span className="text-sm text-destructive">
                   {errors.password.message}
                 </span>
               )}
@@ -142,25 +148,25 @@ function UserForm({
           )}
         </div>
         {mutation.isError && (
-          <p className="alert alert-error" role="alert">
+          <Alert variant="destructive" role="alert">
             {apiError(mutation.error, "No se pudo guardar el usuario.")}
-          </p>
+          </Alert>
         )}
-        <div className="card-actions">
-          <button className="btn btn-primary" disabled={mutation.isPending}>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? "Guardando…" : "Guardar usuario"}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="btn btn-ghost"
+            variant="ghost"
             disabled={mutation.isPending}
             onClick={close}
           >
             Cancelar
-          </button>
+          </Button>
         </div>
-      </div>
-    </form>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -181,8 +187,8 @@ function PasswordForm({
     defaultValues: { password: "" },
   });
   return (
-    <form
-      className="card border border-base-300 bg-base-100"
+    <Card
+      as="form"
       noValidate
       onSubmit={handleSubmit((values) =>
         password.mutate(
@@ -191,40 +197,40 @@ function PasswordForm({
         ),
       )}
     >
-      <div className="card-body">
-        <h2 className="card-title">Cambiar contraseña de {user.username}</h2>
+      <CardContent>
+        <h2 className="text-lg leading-snug font-semibold">Cambiar contraseña de {user.username}</h2>
         <label className="grid gap-1">
           Nueva contraseña
-          <input
+          <Input
             type="password"
             autoComplete="new-password"
-            className="input w-full max-w-sm"
+            className="w-full max-w-sm"
             {...register("password")}
           />
         </label>
         {errors.password && (
-          <p className="text-error">{errors.password.message}</p>
+          <p className="text-destructive">{errors.password.message}</p>
         )}
         {password.isError && (
-          <p className="alert alert-error" role="alert">
+          <Alert variant="destructive" role="alert">
             {apiError(password.error, "No se pudo cambiar la contraseña.")}
-          </p>
+          </Alert>
         )}
-        <div className="card-actions">
-          <button className="btn btn-primary" disabled={password.isPending}>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button type="submit" disabled={password.isPending}>
             Cambiar contraseña
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="btn btn-ghost"
+            variant="ghost"
             disabled={password.isPending}
             onClick={close}
           >
             Cancelar
-          </button>
+          </Button>
         </div>
-      </div>
-    </form>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -254,23 +260,23 @@ export default function UsersPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold">Usuarios</h1>
+        <h1 className="text-[1.75rem] font-semibold tracking-tight sm:text-4xl">Usuarios</h1>
         {admin && (
-          <button
-            className="btn btn-primary"
+          <Button
+            type="submit"
             onClick={() => {
               setNotice("");
               setSelection({ mode: "create" });
             }}
           >
             Nuevo usuario
-          </button>
+          </Button>
         )}
       </div>
       {notice && (
-        <p className="alert alert-success" role="status">
+        <Alert variant="success" role="status">
           {notice}
-        </p>
+        </Alert>
       )}
       {selection?.mode === "create" && admin && (
         <UserForm close={close} onSuccess={() => done("Usuario creado.")} />
@@ -280,12 +286,12 @@ export default function UsersPage() {
         (detail.isPending ? (
           <p role="status">Cargando usuario…</p>
         ) : detail.isError ? (
-          <div className="alert alert-error" role="alert">
+          <Alert variant="destructive" role="alert">
             {apiError(detail.error, "No se pudo cargar el usuario.")}
-            <button className="btn" onClick={close}>
+            <Button type="submit" variant="outline" onClick={close}>
               Cerrar
-            </button>
-          </div>
+            </Button>
+          </Alert>
         ) : selection.mode === "edit" && admin ? (
           <UserForm
             key={detail.data.id}
@@ -296,9 +302,9 @@ export default function UsersPage() {
         ) : selection.mode === "password" && admin ? (
           <PasswordForm key={detail.data.id} user={detail.data} close={close} />
         ) : (
-          <section className="card border border-base-300 bg-base-100">
-            <div className="card-body">
-              <h2 className="card-title">{detail.data.username}</h2>
+          <Card as="section">
+            <CardContent>
+              <h2 className="text-lg leading-snug font-semibold">{detail.data.username}</h2>
               <dl className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <dt className="text-sm opacity-70">Nombre completo</dt>
@@ -325,14 +331,14 @@ export default function UsersPage() {
                   </dd>
                 </div>
               </dl>
-              <button className="btn btn-outline self-start" onClick={close}>
+              <Button type="submit" variant="outline" className="self-start" onClick={close}>
                 Cerrar detalle
-              </button>
-            </div>
-          </section>
+              </Button>
+            </CardContent>
+          </Card>
         ))}
       <form
-        className="flex flex-wrap items-end gap-3 rounded-box border border-base-300 bg-base-100 p-4"
+        className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card p-4"
         onSubmit={(event) => {
           event.preventDefault();
           setFilters((previous) => ({
@@ -344,8 +350,8 @@ export default function UsersPage() {
       >
         <label className="grid gap-1">
           Buscar
-          <input
-            className="input w-full"
+          <Input
+            className="w-full"
             value={search}
             maxLength={100}
             onChange={(event) => setSearch(event.target.value)}
@@ -354,8 +360,8 @@ export default function UsersPage() {
         </label>
         <label className="grid gap-1">
           Rol
-          <select
-            className="select w-full"
+          <NativeSelect
+            className="w-full"
             value={filters.userRole ?? ""}
             onChange={(event) => {
               const result = z.enum(roles).safeParse(event.target.value);
@@ -372,12 +378,12 @@ export default function UsersPage() {
                 {roleLabels[role]}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
         <label className="grid gap-1">
           Estado
-          <select
-            className="select w-full"
+          <NativeSelect
+            className="w-full"
             value={filters.status ?? ""}
             onChange={(event) => {
               const result = z.enum(statuses).safeParse(event.target.value);
@@ -391,24 +397,24 @@ export default function UsersPage() {
             <option value="">Todos</option>
             <option value="ACTIVE">Activo</option>
             <option value="INACTIVE">Inactivo</option>
-          </select>
+          </NativeSelect>
         </label>
-        <button className="btn btn-outline">Buscar</button>
+        <Button type="submit" variant="outline">Buscar</Button>
       </form>
       {status.isError && (
-        <p className="alert alert-error" role="alert">
+        <Alert variant="destructive" role="alert">
           {apiError(status.error, "No se pudo cambiar el estado.")}
-        </p>
+        </Alert>
       )}
       {list.isPending ? (
         <p role="status">Cargando usuarios…</p>
       ) : list.isError ? (
-        <div className="alert alert-error" role="alert">
+        <Alert variant="destructive" role="alert">
           {apiError(list.error, "No se pudo cargar el listado.")}
-          <button className="btn" onClick={() => void list.refetch()}>
+          <Button type="submit" variant="outline" onClick={() => void list.refetch()}>
             Reintentar
-          </button>
-        </div>
+          </Button>
+        </Alert>
       ) : (
         <>
           {list.data.items.length === 0 && (
@@ -416,22 +422,20 @@ export default function UsersPage() {
           )}
           <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {list.data.items.map((user) => (
-              <li
+              <Card
                 key={user.id}
-                className="card border border-base-300 bg-base-100"
+                as="li"
               >
-                <div className="card-body">
+                <CardContent>
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h2 className="card-title break-all">{user.username}</h2>
-                    <span
-                      className={
-                        user.status === "ACTIVE"
-                          ? "badge badge-success"
-                          : "badge badge-ghost"
-                      }
+                    <h2 className="text-lg leading-snug font-semibold break-all">{user.username}</h2>
+                    <Badge
+                      variant={user.status === "ACTIVE"
+                          ? "success"
+                          : "ghost"}
                     >
                       {user.status === "ACTIVE" ? "Activo" : "Inactivo"}
-                    </span>
+                    </Badge>
                   </div>
                   <dl className="grid gap-2 text-sm sm:grid-cols-2">
                     <div>
@@ -453,36 +457,36 @@ export default function UsersPage() {
                       <dd className="font-medium">{user.dni}</dd>
                     </div>
                   </dl>
-                  <div className="card-actions">
-                    <button
-                      className="btn btn-sm btn-outline"
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <Button
+                      type="submit" variant="outline" size="sm"
                       onClick={() =>
                         setSelection({ mode: "detail", id: user.id })
                       }
                     >
                       Ver
-                    </button>
+                    </Button>
                     {admin && (
                       <>
-                        <button
-                          className="btn btn-sm btn-outline"
+                        <Button
+                          type="submit" variant="outline" size="sm"
                           onClick={() =>
                             setSelection({ mode: "edit", id: user.id })
                           }
                         >
                           Editar
-                        </button>
-                        <button
-                          className="btn btn-sm btn-outline"
+                        </Button>
+                        <Button
+                          type="submit" variant="outline" size="sm"
                           onClick={() =>
                             setSelection({ mode: "password", id: user.id })
                           }
                         >
                           Contraseña
-                        </button>
+                        </Button>
                         {user.id !== currentId && (
-                          <button
-                            className="btn btn-sm btn-outline"
+                          <Button
+                            type="submit" variant="outline" size="sm"
                             disabled={status.isPending}
                             onClick={async () => {
                               const next =
@@ -508,21 +512,21 @@ export default function UsersPage() {
                             {user.status === "ACTIVE"
                               ? "Desactivar"
                               : "Activar"}
-                          </button>
+                          </Button>
                         )}
                       </>
                     )}
                   </div>
-                </div>
-              </li>
+                </CardContent>
+              </Card>
             ))}
           </ul>
           <nav
             className="flex flex-wrap items-center gap-3"
             aria-label="Paginación de usuarios"
           >
-            <button
-              className="btn btn-outline"
+            <Button
+              type="submit" variant="outline"
               disabled={filters.page <= 1}
               onClick={() =>
                 setFilters((previous) => ({
@@ -532,13 +536,13 @@ export default function UsersPage() {
               }
             >
               Anterior
-            </button>
+            </Button>
             <span>
               Página {filters.page} de {Math.max(1, list.data.meta.pageCount)} ·{" "}
               {list.data.meta.total} usuarios
             </span>
-            <button
-              className="btn btn-outline"
+            <Button
+              type="submit" variant="outline"
               disabled={filters.page >= list.data.meta.pageCount}
               onClick={() =>
                 setFilters((previous) => ({
@@ -548,7 +552,7 @@ export default function UsersPage() {
               }
             >
               Siguiente
-            </button>
+            </Button>
           </nav>
         </>
       )}

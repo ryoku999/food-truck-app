@@ -1,3 +1,8 @@
+import { FieldSet } from "@/presentation/components/ui/field";
+import { Input } from "@/presentation/components/ui/input";
+import { Textarea } from "@/presentation/components/ui/textarea";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Button } from "@/presentation/components/ui/button";
 import { useCancelOrder } from "@/infrastructure/hooks/use-orders";
 import { apiError } from "@/shared/utils/api-error";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -45,7 +50,7 @@ export function CancelOrderForm({
   const quantity = useWatch({ control, name: "quantity" });
   return (
     <form
-      className="space-y-3 rounded-box border border-error bg-base-100 p-4"
+      className="space-y-3 rounded-xl border border-destructive bg-card p-4"
       noValidate
       onSubmit={handleSubmit(async ({ reason, quantity }) => {
         if (item && quantity > item.quantity) {
@@ -82,17 +87,17 @@ export function CancelOrderForm({
           ? `Se cancelarán ${Number.isInteger(quantity) && quantity > 0 ? quantity : "…"} de las ${item.quantity} unidades de «${item.name}» de esta línea. El total se recalculará y Cocina y Barra recibirán la actualización.`
           : "Se cancelarán todos los productos del pedido y se liberarán sus mesas. Cocina y Barra recibirán la actualización."}
       </p>
-      <fieldset className="space-y-3" disabled={isSubmitting}>
+      <FieldSet className="space-y-3" disabled={isSubmitting}>
         {item && (
           <label className="grid gap-1">
             Unidades a cancelar (máximo {item.quantity})
-            <input
+            <Input
               type="number"
               inputMode="numeric"
               min={1}
               max={item.quantity}
               step={1}
-              className="input w-full"
+              className="w-full"
               aria-invalid={!!errors.quantity}
               {...register("quantity", {
                 valueAsNumber: true,
@@ -102,28 +107,28 @@ export function CancelOrderForm({
           </label>
         )}
         {errors.quantity && (
-          <p role="alert" className="text-error">
+          <p role="alert" className="text-destructive">
             {errors.quantity.message}
           </p>
         )}
         <label className="grid gap-1">
           Motivo obligatorio
-          <textarea
-            className="textarea w-full"
+          <Textarea
+            className="w-full"
             maxLength={500}
             aria-invalid={!!errors.reason}
             {...register("reason")}
           />
         </label>
         {errors.reason && (
-          <p className="text-error" role="alert">
+          <p className="text-destructive" role="alert">
             {errors.reason.message}
           </p>
         )}
         <label className="flex min-h-11 items-start gap-2">
           <input
             type="checkbox"
-            className="checkbox mt-1 shrink-0"
+            className="mt-1 shrink-0"
             {...register("confirmed")}
           />
           <span>
@@ -133,32 +138,32 @@ export function CancelOrderForm({
           </span>
         </label>
         {errors.confirmed && (
-          <p className="text-error" role="alert">
+          <p className="text-destructive" role="alert">
             {errors.confirmed.message}
           </p>
         )}
         {errors.root && (
-          <p role="alert" className="alert alert-error">
+          <Alert role="alert" variant="destructive">
             {errors.root.message}
-          </p>
+          </Alert>
         )}
         <div className="flex flex-wrap gap-2">
-          <button className="btn btn-error min-h-11">
+          <Button type="submit" variant="destructive" className="min-h-11">
             {isSubmitting
               ? "Cancelando…"
               : item
                 ? "Confirmar cancelación del producto"
                 : "Confirmar cancelación y liberar mesas"}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="btn btn-ghost min-h-11"
+            variant="ghost" className="min-h-11"
             onClick={close}
           >
             Volver a la cuenta
-          </button>
+          </Button>
         </div>
-      </fieldset>
+      </FieldSet>
     </form>
   );
 }

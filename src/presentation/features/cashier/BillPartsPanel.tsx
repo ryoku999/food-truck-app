@@ -1,3 +1,7 @@
+import { Button } from "@/presentation/components/ui/button";
+import { Input } from "@/presentation/components/ui/input";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Badge } from "@/presentation/components/ui/badge";
 import { useConfirm } from "@/presentation/components/use-confirm";
 import type {
   BillParts,
@@ -76,7 +80,7 @@ function ProductPicker({
       {lines.map(({ item, text, valid, amount, unitPrice, approximate }) => (
         <div
           key={item.id}
-          className="flex flex-wrap items-center justify-between gap-2 border-t border-base-300 py-2"
+          className="flex flex-wrap items-center justify-between gap-2 border-t border-border py-2"
         >
           <div>
             <p className="font-medium">
@@ -95,9 +99,9 @@ function ProductPicker({
             )}
           </div>
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
-              className="btn btn-outline min-h-11"
+              variant="outline" className="min-h-11"
               aria-label={`Quitar una unidad de ${item.name}`}
               disabled={blocked || !valid || Number(text) <= 0}
               onClick={() =>
@@ -108,9 +112,9 @@ function ProductPicker({
               }
             >
               −
-            </button>
-            <input
-              className="input w-16 text-center"
+            </Button>
+            <Input
+              className="w-16 text-center"
               placeholder="0"
               inputMode="numeric"
               maxLength={10}
@@ -125,9 +129,9 @@ function ProductPicker({
                 }))
               }
             />
-            <button
+            <Button
               type="button"
-              className="btn btn-outline min-h-11"
+              variant="outline" className="min-h-11"
               aria-label={`Agregar una unidad de ${item.name}`}
               disabled={
                 blocked || !valid || Number(text) >= item.remainingQuantity
@@ -140,31 +144,31 @@ function ProductPicker({
               }
             >
               +
-            </button>
+            </Button>
           </div>
         </div>
       ))}
       {invalid && (
-        <p role="alert" className="text-error">
+        <p role="alert" className="text-destructive">
           Revisa las cantidades disponibles o vuelve a seleccionar los
           productos.
         </p>
       )}
       <label className="grid gap-1">
         Nombre de quien paga (opcional)
-        <input
-          className="input w-full"
+        <Input
+          className="w-full"
           maxLength={80}
           value={name}
           onChange={(event) => setName(event.target.value)}
         />
       </label>
-      <button
-        className="btn btn-primary min-h-11 w-full"
+      <Button
+        type="submit" className="min-h-11 w-full"
         disabled={blocked || invalid || total <= 0}
       >
         Cobrar selección · {format((total / 100).toFixed(2))}
-      </button>
+      </Button>
     </form>
   );
 }
@@ -193,7 +197,7 @@ export function BillPartsPanel({
   const confirmAction = useConfirm();
   const remove = useCashierAction<BillParts>();
   return (
-    <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4">
+    <section className="space-y-3 rounded-xl border border-border bg-card p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold">Partes por productos</h2>
       </div>
@@ -208,24 +212,24 @@ export function BillPartsPanel({
         </div>
       )}
       {remove.isError && (
-        <p role="alert" className="alert alert-error">
+        <Alert role="alert" variant="destructive">
           {apiError(remove.error, "No se pudo liberar la parte.")}
-        </p>
+        </Alert>
       )}
       {bill.parts.map((part) => {
         const paid = cents(part.pending) === 0;
         return (
           <article
             key={part.id}
-            className="space-y-2 rounded-box border border-base-300 p-3"
+            className="space-y-2 rounded-xl border border-border p-3"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="font-semibold">{part.name}</h3>
-              <span
-                className={`badge ${paid ? "badge-success" : "badge-outline"}`}
+              <Badge
+                variant={paid ? "success" : "outline"}
               >
                 {paid ? "Pagada" : "Pendiente"}
-              </span>
+              </Badge>
             </div>
             <ul className="space-y-1">
               {part.items.map((item) => (
@@ -247,8 +251,8 @@ export function BillPartsPanel({
             </p>
             <div className="flex flex-wrap gap-2">
               {editable && !paid && (
-                <button
-                  className={`btn min-h-11 ${selected === part.id ? "btn-primary" : "btn-outline"}`}
+                <Button
+                  type="submit" variant={selected === part.id ? "default" : "outline"} className="min-h-11"
                   disabled={blocked}
                   aria-pressed={selected === part.id}
                   onClick={() => select(part.id)}
@@ -256,7 +260,7 @@ export function BillPartsPanel({
                   {selected === part.id
                     ? "Parte seleccionada"
                     : "Cobrar esta parte"}
-                </button>
+                </Button>
               )}
               {paid && (
                 <BillDocumentButton
@@ -265,8 +269,8 @@ export function BillPartsPanel({
                 />
               )}
               {editable && part.removable && (
-                <button
-                  className="btn btn-ghost min-h-11"
+                <Button
+                  type="submit" variant="ghost" className="min-h-11"
                   disabled={blocked || remove.isPending}
                   onClick={async () => {
                     if (
@@ -278,7 +282,7 @@ export function BillPartsPanel({
                   }}
                 >
                   Liberar parte
-                </button>
+                </Button>
               )}
             </div>
           </article>

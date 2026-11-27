@@ -1,3 +1,7 @@
+import { Badge } from "@/presentation/components/ui/badge";
+import { Button } from "@/presentation/components/ui/button";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Alert } from "@/presentation/components/ui/alert";
 import type { PrintJob } from "@/core/entities/printing.entity";
 import { canRetryPrintJob } from "@/core/entities/printing.entity";
 import { usePrintAction, useRetryPrinters } from "@/infrastructure/hooks/use-printing";
@@ -10,14 +14,14 @@ import { printStatusLabels } from "./printing-labels";
 export function PrintJobBadge({ job }: { job: Pick<PrintJob, "status"> }) {
   const badge =
     job.status === "PRINTED"
-      ? "badge-success"
+      ? "success"
       : job.status === "FAILED"
-        ? "badge-error"
+        ? "destructive"
         : job.status === "PROCESSING"
-          ? "badge-info"
-          : "badge-outline";
+          ? "info"
+          : "outline";
   return (
-    <span className={`badge ${badge}`}>{printStatusLabels[job.status]}</span>
+    <Badge variant={badge}>{printStatusLabels[job.status]}</Badge>
   );
 }
 
@@ -44,13 +48,13 @@ export function PrintJobActions({
     <div className="space-y-2">
       {description && <p className="wrap-break-word text-sm">{description}</p>}
       {safe ? (
-        <button
-          className="btn btn-outline min-h-11"
+        <Button
+          type="submit" variant="outline" className="min-h-11"
           disabled={blocked || retry.isPending}
           onClick={() => retry.mutate((repo) => repo.retry(job.id))}
         >
           {retry.isPending ? "Reencolando…" : "Reintentar trabajo"}
-        </button>
+        </Button>
       ) : (
         <p className="text-sm">
           El resultado puede ser incierto. Revisa la salida del agente antes de
@@ -58,9 +62,9 @@ export function PrintJobActions({
         </p>
       )}
       {canConfirmMissingPaper && (
-        <button
+        <Button
           type="button"
-          className="btn btn-outline min-h-11"
+          variant="outline" className="min-h-11"
           disabled={blocked || retry.isPending}
           onClick={async () => {
             const confirmed = await confirmAction({
@@ -74,19 +78,19 @@ export function PrintJobActions({
           }}
         >
           {retry.isPending ? "Reencolando…" : "Reintentar si no salió papel"}
-        </button>
+        </Button>
       )}
       {canSwitchPrinter && (
         <>
-          <button
+          <Button
             type="button"
-            className="btn btn-outline min-h-11"
+            variant="outline" className="min-h-11"
             disabled={blocked || retry.isPending}
             aria-expanded={choosing}
             onClick={() => setChoosing((open) => !open)}
           >
             Reintentar en otra impresora
-          </button>
+          </Button>
           {choosing && (
             <div className="space-y-2">
               {printers.isLoading && <p role="status">Buscando destinos…</p>}
@@ -98,8 +102,8 @@ export function PrintJobActions({
                 <>
                   <label className="grid gap-1">
                     Impresora de destino
-                    <select
-                      className="select w-full sm:max-w-sm"
+                    <NativeSelect
+                      className="w-full sm:max-w-sm"
                       value={printerId}
                       disabled={blocked || retry.isPending}
                       onChange={(event) => setPrinterId(event.target.value)}
@@ -108,11 +112,11 @@ export function PrintJobActions({
                       {printers.data.map((printer) => (
                         <option key={printer.id} value={printer.id}>{printer.name}</option>
                       ))}
-                    </select>
+                    </NativeSelect>
                   </label>
-                  <button
+                  <Button
                     type="button"
-                    className="btn btn-primary min-h-11"
+                    className="min-h-11"
                     disabled={blocked || retry.isPending || !printers.data.some((printer) => printer.id === printerId)}
                     onClick={() => retry.mutate((repo) => repo.retry(job.id, { printerId }), {
                       onSuccess: () => {
@@ -123,7 +127,7 @@ export function PrintJobActions({
                     })}
                   >
                     {retry.isPending ? "Reencolando…" : "Confirmar reintento"}
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
@@ -131,12 +135,12 @@ export function PrintJobActions({
         </>
       )}
       {retry.isError && (
-        <p role="alert" className="alert alert-error">
+        <Alert role="alert" variant="destructive">
           {apiError(
             retry.error,
             "No se confirmó el reintento. Actualiza la cola.",
           )}
-        </p>
+        </Alert>
       )}
     </div>
   );

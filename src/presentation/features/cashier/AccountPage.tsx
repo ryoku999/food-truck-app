@@ -1,3 +1,10 @@
+import { Card, CardContent } from "@/presentation/components/ui/card";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Input } from "@/presentation/components/ui/input";
+import { Button, buttonVariants } from "@/presentation/components/ui/button";
+import { Textarea } from "@/presentation/components/ui/textarea";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Badge } from "@/presentation/components/ui/badge";
 import { CancelOrderForm } from "./CancelOrderForm";
 import type {
   OrderPayments,
@@ -106,8 +113,8 @@ function PaymentForm({
     registers.data?.filter((item) => item.active && item.currentSession) ?? [];
   const pending = selection?.expectedTotal ?? part?.pending ?? summary.pending;
   return (
-    <form
-      className="card border border-base-300 bg-base-100"
+    <Card
+      as="form"
       noValidate
       onSubmit={handleSubmit(async (values) => {
         if (blocked || !method || methods.isError) return;
@@ -176,8 +183,8 @@ function PaymentForm({
         }
       })}
     >
-      <div className="card-body">
-        <h2 className="card-title">
+      <CardContent>
+        <h2 className="text-lg leading-snug font-semibold">
           {selection
             ? selection.name
               ? `Cobrar a ${selection.name}`
@@ -202,7 +209,7 @@ function PaymentForm({
         </p>
         <label className="grid gap-1">
           Método
-          <select className="select w-full" {...register("methodId")}>
+          <NativeSelect className="w-full" {...register("methodId")}>
             <option value="">Selecciona un método</option>
             {methods.data
               ?.filter((item) => item.active)
@@ -211,10 +218,10 @@ function PaymentForm({
                   {item.name}
                 </option>
               ))}
-          </select>
+          </NativeSelect>
         </label>
         {methods.isError && (
-          <p role="alert" className="text-error">
+          <p role="alert" className="text-destructive">
             No se pudieron cargar los métodos.
           </p>
         )}
@@ -223,17 +230,17 @@ function PaymentForm({
         )}
         <label className="grid gap-1">
           Turno al que se abonará el pago
-          <select className="select w-full" {...register("registerId")}>
+          <NativeSelect className="w-full" {...register("registerId")}>
             <option value="">Selecciona una caja</option>
             {open.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.name}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
         {registers.isError && (
-          <p role="alert" className="text-error">
+          <p role="alert" className="text-destructive">
             No se pudieron consultar los turnos.
           </p>
         )}
@@ -249,39 +256,39 @@ function PaymentForm({
         )}
         <label className="grid gap-1">
           {cash ? "Monto aplicado a la cuenta" : "Monto exacto del pago"}
-          <input
-            className="input w-full"
+          <Input
+            className="w-full"
             inputMode="decimal"
             {...register("amount")}
           />
         </label>
-        <button
+        <Button
           type="button"
-          className="btn btn-outline self-start"
+          variant="outline" className="self-start"
           disabled={isSubmitting || blocked}
           onClick={() => setValue("amount", pending, { shouldValidate: true })}
         >
           Usar saldo pendiente
-        </button>
+        </Button>
         {cash && (
-          <div className="space-y-2 rounded-box bg-base-200 p-3">
+          <div className="space-y-2 rounded-xl bg-muted p-3">
             <label className="grid gap-1">
               Efectivo recibido
-              <input
-                className="input w-full"
+              <Input
+                className="w-full"
                 inputMode="decimal"
                 aria-invalid={!!errors.received}
                 {...register("received")}
               />
             </label>
-            <button
+            <Button
               type="button"
-              className="btn btn-outline"
+              variant="outline"
               disabled={!validApplied || isSubmitting || blocked}
               onClick={() => setValue("received", applied)}
             >
               Recibí el monto exacto
-            </button>
+            </Button>
             <p className="font-semibold" aria-live="polite">
               Vuelto:{" "}
               {change !== null && change >= 0
@@ -289,7 +296,7 @@ function PaymentForm({
                 : "—"}
             </p>
             {change !== null && change < 0 && (
-              <p className="text-error">
+              <p className="text-destructive">
                 El efectivo recibido es insuficiente para este abono.
               </p>
             )}
@@ -297,16 +304,16 @@ function PaymentForm({
         )}
         <label className="grid gap-1">
           Referencia (opcional)
-          <input
-            className="input w-full"
+          <Input
+            className="w-full"
             maxLength={150}
             {...register("reference")}
           />
         </label>
         <label className="grid gap-1">
           Notas (opcional)
-          <textarea
-            className="textarea w-full"
+          <Textarea
+            className="w-full"
             maxLength={500}
             {...register("notes")}
           />
@@ -316,21 +323,21 @@ function PaymentForm({
           errors.amount ||
           (cash && errors.received) ||
           errors.root) && (
-          <p role="alert" className="alert alert-error">
+          <Alert role="alert" variant="destructive">
             {errors.methodId?.message ||
               errors.registerId?.message ||
               errors.amount?.message ||
               (cash && errors.received?.message) ||
               errors.root?.message}
-          </p>
+          </Alert>
         )}
         {notice && (
-          <p role="status" className="alert alert-success">
+          <Alert role="status" variant="success">
             {notice}
-          </p>
+          </Alert>
         )}
-        <button
-          className="btn btn-primary min-h-11"
+        <Button
+          type="submit" className="min-h-11"
           disabled={
             isSubmitting ||
             blocked ||
@@ -341,19 +348,19 @@ function PaymentForm({
           }
         >
           {isSubmitting ? "Registrando…" : "Confirmar pago"}
-        </button>
+        </Button>
         {back && (
-          <button
+          <Button
             type="button"
-            className="btn btn-ghost min-h-11"
+            variant="ghost" className="min-h-11"
             disabled={isSubmitting}
             onClick={back}
           >
             Volver a los productos
-          </button>
+          </Button>
         )}
-      </div>
-    </form>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -387,33 +394,33 @@ function CancelPaymentForm({
     >
       <label className="grid gap-1">
         Motivo de anulación
-        <textarea
-          className="textarea w-full"
+        <Textarea
+          className="w-full"
           maxLength={500}
           {...register("reason")}
         />
       </label>
-      {errors.reason && <p className="text-error">{errors.reason.message}</p>}
+      {errors.reason && <p className="text-destructive">{errors.reason.message}</p>}
       {action.isError && (
-        <p role="alert" className="alert alert-error">
+        <Alert role="alert" variant="destructive">
           {apiError(
             action.error,
             "No se confirmó la anulación. Revisa el historial.",
           )}
-        </p>
+        </Alert>
       )}
       <div className="flex flex-wrap gap-2">
-        <button className="btn btn-error" disabled={isSubmitting}>
+        <Button type="submit" variant="destructive" disabled={isSubmitting}>
           Confirmar anulación
-        </button>
-        <button
-          className="btn btn-ghost"
+        </Button>
+        <Button
+          variant="ghost"
           type="button"
           disabled={isSubmitting}
           onClick={close}
         >
           Volver
-        </button>
+        </Button>
       </div>
     </form>
   );
@@ -474,36 +481,36 @@ function Account({ id }: { id: string }) {
   const blocked = payments.isError || order.isError || parts.isError;
   return (
     <div className="space-y-4">
-      <Link className="btn btn-ghost" to=".." relative="path">
+      <Link className={buttonVariants({ variant: "ghost" })} to=".." relative="path">
         Volver a cuentas
       </Link>
       {(order.isPending || payments.isPending) && (
         <p role="status">Cargando cuenta…</p>
       )}
       {(order.isError || payments.isError) && (
-        <div role="alert" className="alert alert-error">
+        <Alert role="alert" variant="destructive">
           {apiError(
             order.error ?? payments.error,
             "No se pudo actualizar la cuenta.",
           )}
-          <button
-            className="btn"
+          <Button
+            type="submit" variant="outline"
             onClick={() => {
               void order.refetch();
               void payments.refetch();
             }}
           >
             Reintentar
-          </button>
-        </div>
+          </Button>
+        </Alert>
       )}
       {current && (
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-3xl font-bold">Cuenta #{current.number}</h1>
-            <span className="badge badge-outline">
+            <h1 className="text-[1.75rem] font-semibold tracking-tight sm:text-4xl">Cuenta #{current.number}</h1>
+            <Badge variant="outline">
               {orderLabels[current.status]}
-            </span>
+            </Badge>
           </div>
           {current.customerName && <p>{current.customerName}</p>}
           <p>
@@ -514,7 +521,7 @@ function Account({ id }: { id: string }) {
         </div>
       )}
       {summary && (
-        <dl className="sticky top-0 z-10 grid grid-cols-3 gap-2 rounded-box border border-base-300 bg-base-100 p-3 text-sm sm:text-base">
+        <dl className="sticky top-0 z-10 grid grid-cols-3 gap-2 rounded-xl border border-border bg-card p-3 text-sm sm:text-base">
           <div>
             <dt>Total</dt>
             <dd className="font-bold">{format(summary.orderTotal)}</dd>
@@ -530,15 +537,15 @@ function Account({ id }: { id: string }) {
         </dl>
       )}
       {hasDraftItems && (
-        <p role="status" className="alert alert-warning">
+        <Alert role="status" variant="warning">
           Hay productos nuevos sin enviar. Pide al mozo que envíe la comanda
           antes de cobrar.
-        </p>
+        </Alert>
       )}
       {cancelNotice && (
-        <p role="status" className="alert alert-success">
+        <Alert role="status" variant="success">
           {cancelNotice}
-        </p>
+        </Alert>
       )}
       {current &&
         canCancel &&
@@ -561,9 +568,9 @@ function Account({ id }: { id: string }) {
           />
         ) : (
           <div className="space-y-2">
-            <button
+            <Button
               type="button"
-              className="btn btn-error btn-outline min-h-11"
+              variant="destructive" className="min-h-11"
               disabled={
                 blocked ||
                 !payments.isSuccess ||
@@ -581,7 +588,7 @@ function Account({ id }: { id: string }) {
               }}
             >
               Cancelar pedido y liberar mesas
-            </button>
+            </Button>
             {(split ||
               payments.data?.items.some(
                 (payment) => payment.status === "COMPLETED",
@@ -635,20 +642,20 @@ function Account({ id }: { id: string }) {
         <div className="space-y-4">
           {parts.isPending && <p role="status">Cargando división de cuenta…</p>}
           {parts.isError && (
-            <div className="alert alert-error" role="alert">
+            <Alert variant="destructive" role="alert">
               {apiError(parts.error, "No se pudo consultar la división.")}
-              <button className="btn" onClick={() => void parts.refetch()}>
+              <Button type="submit" variant="outline" onClick={() => void parts.refetch()}>
                 Reintentar
-              </button>
-            </div>
+              </Button>
+            </Alert>
           )}
           {payable && parts.data?.canSplit && !split && !cancelling && (
             <nav
               aria-label="Modalidad de cobro"
               className="flex flex-wrap gap-2"
             >
-              <button
-                className={`btn ${!productMode ? "btn-primary" : "btn-outline"}`}
+              <Button
+                type="submit" variant={!productMode ? "default" : "outline"}
                 aria-pressed={!productMode}
                 onClick={() => {
                   setSelection(undefined);
@@ -656,14 +663,14 @@ function Account({ id }: { id: string }) {
                 }}
               >
                 Abonar por monto
-              </button>
-              <button
-                className={`btn ${productMode ? "btn-primary" : "btn-outline"}`}
+              </Button>
+              <Button
+                type="submit" variant={productMode ? "default" : "outline"}
                 aria-pressed={!!productMode}
                 onClick={() => setMode("products")}
               >
                 Pagar productos
-              </button>
+              </Button>
             </nav>
           )}
           {payable &&
@@ -678,9 +685,9 @@ function Account({ id }: { id: string }) {
               </p>
             )}
           {selectionNotice && (
-            <p className="alert alert-success" role="status">
+            <Alert variant="success" role="status">
               {selectionNotice}
-            </p>
+            </Alert>
           )}
           {parts.data && productMode && (
             <BillPartsPanel
@@ -766,12 +773,12 @@ function Account({ id }: { id: string }) {
             />
           )}
           {current && (
-            <section className="rounded-box border border-base-300 bg-base-100 p-4">
+            <section className="rounded-xl border border-border bg-card p-4">
               <h2 className="mb-2 text-xl font-semibold">Detalle del pedido</h2>
               <ul className="space-y-3">
                 {current.items.map((item) => (
                   <li
-                    className="space-y-1 border-b border-base-300 pb-2"
+                    className="space-y-1 border-b border-border pb-2"
                     key={item.id}
                   >
                     <div className="flex flex-wrap justify-between gap-2">
@@ -821,9 +828,9 @@ function Account({ id }: { id: string }) {
                         current.status,
                       ) &&
                       item.status !== "CANCELLED" && (
-                        <button
+                        <Button
                           type="button"
-                          className="btn btn-error btn-outline min-h-11"
+                          variant="destructive" className="min-h-11"
                           disabled={
                             blocked ||
                             !payments.isSuccess ||
@@ -840,28 +847,28 @@ function Account({ id }: { id: string }) {
                           }}
                         >
                           Cancelar producto
-                        </button>
+                        </Button>
                       )}
                   </li>
                 ))}
               </ul>
             </section>
           )}
-          <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4">
+          <section className="space-y-3 rounded-xl border border-border bg-card p-4">
             <h2 className="text-xl font-semibold">Historial de pagos</h2>
             {payments.data?.items.length === 0 && <p>Sin pagos registrados.</p>}
             {payments.data?.items.map((payment) => (
               <div
                 key={payment.id}
-                className="space-y-2 border-t border-base-300 pt-2"
+                className="space-y-2 border-t border-border pt-2"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span>
                     {payment.paymentMethod.name} · {format(payment.amount)}
                   </span>
-                  <span className="badge badge-outline">
+                  <Badge variant="outline">
                     {labels[payment.status]}
-                  </span>
+                  </Badge>
                 </div>
                 {payment.reference && (
                   <p className="text-sm">Referencia: {payment.reference}</p>
@@ -903,13 +910,13 @@ function Account({ id }: { id: string }) {
                       close={() => setCancelId(undefined)}
                     />
                   ) : (
-                    <button
-                      className="btn btn-sm btn-outline"
+                    <Button
+                      type="submit" variant="outline" size="sm"
                       disabled={cancelling}
                       onClick={() => setCancelId(payment.id)}
                     >
                       Anular pago
-                    </button>
+                    </Button>
                   ))}
               </div>
             ))}

@@ -1,25 +1,33 @@
 import { Outlet } from "react-router-dom";
-import ThemeSelector from "../components/ThemeSelector";
+import { ModeToggle } from "../components/mode-toggle";
+import { Card, CardContent } from "../components/ui/card";
 
-const AuthLayout = () => {
+export default function AuthLayout() {
   return (
-    <main className="grid min-h-dvh place-items-center bg-base-200 p-4 text-base-content sm:p-8">
-      <section className="card w-full max-w-md border border-base-300 bg-base-100 shadow-xl">
-        <div className="card-body gap-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <img
-              src="/logo.png"
-              alt="Food Truck"
-              width={56}
-              height={56}
-              className="size-14 object-contain"
-            />
-            <ThemeSelector />
+    <main className="clay-stage flex min-h-dvh flex-col">
+      <header className="border-b bg-background">
+        <div className="mx-auto flex h-16 max-w-300 items-center justify-between px-4 sm:px-8">
+          <div className="flex items-center gap-2.5 font-semibold tracking-tight">
+            <img src="/logo.png" alt="" className="size-8 rounded-md object-contain" />
+            <span>Food Truck</span>
           </div>
-          <Outlet />
+          <ModeToggle />
         </div>
-      </section>
+      </header>
+      <div className="mx-auto grid w-full max-w-240 flex-1 content-center gap-4 px-4 py-6 sm:px-8 md:grid-cols-[1fr_0.96fr] md:gap-5 md:py-12">
+        <div aria-hidden="true" className="clay-hero clay-raised grid min-h-28 place-items-center overflow-hidden rounded-2xl border p-3 md:min-h-96 md:p-8">
+          <img
+            src="/logo.png"
+            alt=""
+            className="size-24 object-contain drop-shadow-[0_6px_7px_var(--clay-shadow)] md:size-72"
+          />
+        </div>
+        <Card as="section" aria-labelledby="login-title" className="clay-raised w-full justify-center rounded-2xl">
+          <CardContent className="gap-6 p-6 sm:p-8">
+            <Outlet />
+          </CardContent>
+        </Card>
+      </div>
     </main>
   );
-};
-export default AuthLayout;
+}

@@ -4,6 +4,7 @@ export interface ConfirmationOptions {
   message: string;
   title?: string;
   acceptLabel?: string;
+  cancelLabel?: string;
 }
 
 export interface ConfirmationService {

@@ -1,5 +1,8 @@
 import { lazy } from "react";
 
+export const AuthLayout = lazy(() => import("../layouts/AuthLayout"));
+export const RoleLayout = lazy(() => import("../layouts/RoleLayout"));
+
 export const LoginPage = lazy(
   () => import("@/presentation/features/login/pages/LoginPage"),
 );

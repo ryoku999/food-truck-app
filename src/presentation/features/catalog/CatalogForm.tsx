@@ -1,3 +1,9 @@
+import { Card, CardContent } from "@/presentation/components/ui/card";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Textarea } from "@/presentation/components/ui/textarea";
+import { Input } from "@/presentation/components/ui/input";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Button } from "@/presentation/components/ui/button";
 import type { CatalogFields } from "@/core/entities/catalog.entity";
 import type { Editor } from "./catalog-fields";
 import { apiError } from "@/shared/utils/api-error";
@@ -58,8 +64,8 @@ export function CatalogForm({
     ),
   });
   return (
-    <form
-      className="card border border-base-300 bg-base-100"
+    <Card
+      as="form"
       noValidate
       onSubmit={handleSubmit(async (fields) => {
         try {
@@ -72,40 +78,39 @@ export function CatalogForm({
         }
       })}
     >
-      <div className="card-body">
-        <h2 className="card-title">{editor.title}</h2>
+      <CardContent>
+        <h2 className="text-lg leading-snug font-semibold">{editor.title}</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {editor.fields.map((field) => (
             <label key={field.key} className="grid gap-1">
               {field.label}
               {typeof field.value === "boolean" ? (
                 <input
-                  className="checkbox"
                   type="checkbox"
                   {...register(field.key)}
                 />
               ) : field.options ? (
-                <select className="select w-full" {...register(field.key)}>
+                <NativeSelect className="w-full" {...register(field.key)}>
                   {field.options.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               ) : field.multiline ? (
-                <textarea
-                  className="textarea w-full"
+                <Textarea
+                  className="w-full"
                   {...register(field.key)}
                 />
               ) : (
-                <input
-                  className="input w-full"
+                <Input
+                  className="w-full"
                   inputMode={field.numeric ? "decimal" : "text"}
                   {...register(field.key)}
                 />
               )}
               {errors[field.key]?.message && (
-                <span className="text-sm text-error">
+                <span className="text-sm text-destructive">
                   {errors[field.key]?.message}
                 </span>
               )}
@@ -113,24 +118,24 @@ export function CatalogForm({
           ))}
         </div>
         {errors.root?.message && (
-          <p className="alert alert-error" role="alert">
+          <Alert variant="destructive" role="alert">
             {errors.root.message}
-          </p>
+          </Alert>
         )}
-        <div className="card-actions">
-          <button className="btn btn-primary" disabled={isSubmitting}>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? "Guardando…" : "Guardar"}
-          </button>
-          <button
-            className="btn btn-ghost"
+          </Button>
+          <Button
+            variant="ghost"
             type="button"
             disabled={isSubmitting}
             onClick={() => close()}
           >
             Cancelar
-          </button>
+          </Button>
         </div>
-      </div>
-    </form>
+      </CardContent>
+    </Card>
   );
 }

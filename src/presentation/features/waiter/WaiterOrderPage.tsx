@@ -1,3 +1,8 @@
+import { Button, buttonVariants } from "@/presentation/components/ui/button";
+import { Input } from "@/presentation/components/ui/input";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Badge } from "@/presentation/components/ui/badge";
+import { Card, CardContent } from "@/presentation/components/ui/card";
 import { useConfirm } from "@/presentation/components/use-confirm";
 import type { Product } from "@/core/entities/catalog.entity";
 import type { Order } from "@/core/entities/order.entity";
@@ -59,9 +64,9 @@ function OrderMenu({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold">Carta disponible</h2>
         {!product && (
-          <button className="btn btn-outline" onClick={close}>
+          <Button type="submit" variant="outline" onClick={close}>
             Volver a comanda
-          </button>
+          </Button>
         )}
       </div>
       {product ? (
@@ -72,8 +77,8 @@ function OrderMenu({
         />
       ) : (
         <>
-          <input
-            className="input w-full"
+          <Input
+            className="w-full"
             aria-label="Buscar producto"
             placeholder="Buscar producto"
             value={search}
@@ -81,36 +86,36 @@ function OrderMenu({
           />
           {menu.isPending && <p role="status">Cargando carta…</p>}
           {menu.isError && (
-            <div className="alert alert-error" role="alert">
+            <Alert variant="destructive" role="alert">
               {apiError(menu.error, "No se pudo cargar la carta.")}
-              <button
-                className="btn btn-outline"
+              <Button
+                type="submit" variant="outline"
                 onClick={() => void menu.refetch()}
               >
                 Reintentar
-              </button>
-            </div>
+              </Button>
+            </Alert>
           )}
           {matches?.length === 0 && <p>No hay productos para esta búsqueda.</p>}
           {matches?.map((category) => (
             <section key={category.id} className="space-y-2">
               <h3 className="font-semibold">{category.name}</h3>
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div className="grid gap-2">
                 {category.products.map((item) => {
                   const image =
                     item.images.find((photo) => photo.isPrimary) ??
                     item.images[0];
                   return (
-                    <button
+                    <Button
                       key={item.id}
-                      className="btn btn-outline h-auto min-h-14 justify-between gap-2 py-2 text-left whitespace-normal"
+                      type="submit" variant="outline" className="h-auto min-h-14 justify-between gap-2 py-2 text-left whitespace-normal"
                       onClick={() => setProduct(item)}
                     >
                       {image && (
                         <img
                           src={image.url}
                           alt=""
-                          className="h-12 w-12 shrink-0 rounded-box object-cover"
+                          className="h-12 w-12 shrink-0 rounded-xl object-cover"
                           loading="lazy"
                           onError={(event) => {
                             event.currentTarget.hidden = true;
@@ -119,7 +124,7 @@ function OrderMenu({
                       )}
                       <span className="grow">{item.name}</span>
                       <span>{money.format(Number(item.basePrice))}</span>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -154,18 +159,18 @@ function OrderScreen({ id }: { id: string }) {
   if (!order)
     return (
       <div className="space-y-3">
-        <Link className="btn btn-ghost" to="/waiter/orders">
+        <Link className={buttonVariants({ variant: "ghost" })} to="/waiter/orders">
           Volver a mis pedidos
         </Link>
         {query.isPending ? (
           <p role="status">Cargando comanda…</p>
         ) : (
-          <div className="alert alert-error" role="alert">
+          <Alert variant="destructive" role="alert">
             {apiError(query.error, "No se pudo cargar el pedido.")}
-            <button className="btn" onClick={() => void query.refetch()}>
+            <Button type="submit" variant="outline" onClick={() => void query.refetch()}>
               Reintentar
-            </button>
-          </div>
+            </Button>
+          </Alert>
         )}
       </div>
     );
@@ -240,15 +245,15 @@ function OrderScreen({ id }: { id: string }) {
   }
   return (
     <div className="mx-auto max-w-3xl space-y-4">
-      <Link className="btn btn-ghost min-h-11" to="/waiter/orders">
+      <Link className={buttonVariants({ variant: "ghost", className: "min-h-11" })} to="/waiter/orders">
         Mis pedidos
       </Link>
       <div className="space-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-3xl font-bold">Pedido #{orderNumber}</h1>
-          <span className="badge badge-outline">
+          <h1 className="text-[1.75rem] font-semibold tracking-tight">Pedido #{orderNumber}</h1>
+          <Badge variant="outline">
             {orderLabels[order.status]}
-          </span>
+          </Badge>
         </div>
         <p>
           {order.tables.length
@@ -264,18 +269,18 @@ function OrderScreen({ id }: { id: string }) {
         {order.notes && <p>Notas: {order.notes}</p>}
       </div>
       {query.isError && (
-        <p role="alert" className="alert alert-warning">
+        <Alert role="alert" variant="warning">
           No se pudo actualizar el pedido. Estás viendo los últimos datos
           recibidos.
-        </p>
+        </Alert>
       )}
       {feedback && (
-        <p
+        <Alert
           role={feedback.error ? "alert" : "status"}
-          className={`alert ${feedback.error ? "alert-error" : "alert-success"}`}
+          variant={feedback.error ? "destructive" : "success"}
         >
           {feedback.text}
-        </p>
+        </Alert>
       )}
       {showPrinting && (
         <section className="space-y-2" aria-label="Impresión de comandas">
@@ -301,38 +306,38 @@ function OrderScreen({ id }: { id: string }) {
             </ul>
           )}
           {printing.data?.some((job) => job.status === "FAILED") && (
-            <p className="text-error">Pide a caja que revise la comanda fallida.</p>
+            <p className="text-destructive">Pide a caja que revise la comanda fallida.</p>
           )}
         </section>
       )}
       {editable && !editor && !confirm && (
         <div className="flex flex-wrap gap-2">
-          <button
-            className="btn btn-outline min-h-11"
+          <Button
+            type="submit" variant="outline" className="min-h-11"
             disabled={action.isPending}
             onClick={() => setEditor("details")}
           >
             Editar datos
-          </button>
+          </Button>
           {order.type === "DINE_IN" && (
-            <button
-              className="btn btn-outline min-h-11"
+            <Button
+              type="submit" variant="outline" className="min-h-11"
               disabled={action.isPending}
               onClick={() => setEditor("tables")}
             >
               Cambiar mesas
-            </button>
+            </Button>
           )}
-          <button
+          <Button
             type="button"
-            className="btn btn-error btn-outline min-h-11"
+            variant="destructive" className="min-h-11"
             disabled={action.isPending || query.isError}
             onClick={() => void cancelDraft()}
           >
             {hasTables
               ? "Cancelar borrador y liberar mesas"
               : "Cancelar borrador"}
-          </button>
+          </Button>
         </div>
       )}
       {editable && editor === "details" && (
@@ -356,11 +361,11 @@ function OrderScreen({ id }: { id: string }) {
           )}
           <ul className="space-y-2">
             {order.items.map((item) => (
-              <li
+              <Card
                 key={item.id}
-                className="card border border-base-300 bg-base-100"
+                as="li"
               >
-                <div className="card-body gap-2">
+                <CardContent className="gap-2">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <h3 className="font-semibold">
                       {item.quantity} × {item.productNameSnapshot}
@@ -374,16 +379,16 @@ function OrderScreen({ id }: { id: string }) {
                     </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="badge badge-outline">
+                    <Badge variant="outline">
                       {itemLabels[item.status]}
-                    </span>
+                    </Badge>
                     {item.roundNumber && (
-                      <span
-                        className={`badge ${item.roundNumber > 1 ? "badge-secondary" : "badge-outline"}`}
+                      <Badge
+                        variant={item.roundNumber > 1 ? "secondary" : "outline"}
                       >
                         Ronda {item.roundNumber}
                         {item.roundNumber > 1 ? " · Adicional" : ""}
-                      </span>
+                      </Badge>
                     )}
                   </div>
                   {item.sentAt ? (
@@ -444,16 +449,16 @@ function OrderScreen({ id }: { id: string }) {
                     item.status === "DRAFT" &&
                     !editor &&
                     !confirm && (
-                      <div className="card-actions">
-                        <button
-                          className="btn btn-outline min-h-11"
+                      <div className="flex flex-wrap items-center justify-end gap-2">
+                        <Button
+                          type="submit" variant="outline" className="min-h-11"
                           disabled={action.isPending}
                           onClick={() => setEditor({ item: item.id })}
                         >
                           Editar
-                        </button>
-                        <button
-                          className="btn btn-ghost min-h-11"
+                        </Button>
+                        <Button
+                          type="submit" variant="ghost" className="min-h-11"
                           disabled={action.isPending}
                           onClick={async () => {
                             if (
@@ -479,18 +484,18 @@ function OrderScreen({ id }: { id: string }) {
                           }}
                         >
                           Quitar
-                        </button>
+                        </Button>
                       </div>
                     )}
-                </div>
-              </li>
+                </CardContent>
+              </Card>
             ))}
           </ul>
         </section>
       )}
       {confirm && canAppend && (
         <section
-          className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4"
+          className="space-y-3 rounded-xl border border-border bg-card p-4"
           aria-label="Confirmar envío"
         >
           <h2 className="font-semibold">¿Enviar pedido #{order.number}?</h2>
@@ -503,53 +508,56 @@ function OrderScreen({ id }: { id: string }) {
             . Se enviarán solo los productos nuevos a Cocina y Barra.
           </p>
           <div className="flex flex-wrap gap-2">
-            <button
-              className="btn btn-primary min-h-11"
+            <Button
+              type="submit" className="min-h-11"
               disabled={action.isPending || query.isError}
               onClick={() => void send()}
             >
               {action.isPending ? "Enviando…" : "Confirmar envío"}
-            </button>
-            <button
-              className="btn btn-ghost min-h-11"
+            </Button>
+            <Button
+              type="submit" variant="ghost" className="min-h-11"
               disabled={action.isPending}
               onClick={() => setConfirm(false)}
             >
               Volver a revisar
-            </button>
+            </Button>
           </div>
         </section>
       )}
-      <footer className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 space-y-2 rounded-box border border-base-300 bg-base-100 p-3">
-        <p className="flex justify-between font-bold">
+      <footer className="clay-raised sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-10 space-y-2 rounded-xl border bg-card p-3">
+        <p className="flex justify-between font-semibold tabular-nums">
           <span>Total</span>
           <span>{total}</span>
         </p>
         {canAppend && !editor && !confirm && (
           <div className="grid grid-cols-2 gap-2">
-            <button
-              className="btn btn-outline min-h-11"
+            <Button
+              type="button"
+              variant="outline"
+              className="h-auto min-h-11 min-w-0 px-2 py-2 whitespace-normal"
               disabled={action.isPending || query.isError}
               onClick={() => setEditor("menu")}
             >
               Agregar productos
-            </button>
-            <button
-              className="btn btn-primary min-h-11"
+            </Button>
+            <Button
+              type="button"
+              className="h-auto min-h-11 min-w-0 px-2 py-2 whitespace-normal"
               disabled={!draftItems.length || action.isPending || query.isError}
               onClick={() => setConfirm(true)}
             >
               Enviar productos nuevos
-            </button>
+            </Button>
           </div>
         )}
         {query.isError && (
-          <button
-            className="btn btn-outline w-full"
+          <Button
+            type="submit" variant="outline" className="w-full"
             onClick={() => void query.refetch()}
           >
             Actualizar pedido
-          </button>
+          </Button>
         )}
       </footer>
     </div>

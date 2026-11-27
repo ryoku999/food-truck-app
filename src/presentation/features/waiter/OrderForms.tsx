@@ -1,3 +1,10 @@
+import { Card, CardContent } from "@/presentation/components/ui/card";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { FieldLegend, FieldSet } from "@/presentation/components/ui/field";
+import { Input } from "@/presentation/components/ui/input";
+import { Textarea } from "@/presentation/components/ui/textarea";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Button } from "@/presentation/components/ui/button";
 import type { Order, OrderDetails } from "@/core/entities/order.entity";
 import { orderTypes } from "@/core/entities/order.entity";
 import { useTableMap } from "@/infrastructure/hooks/use-local";
@@ -69,8 +76,8 @@ export function OrderForm({
       .filter((area) => area.tables.length > 0) ?? [];
   const candidates = tableAreas.flatMap((area) => area.tables);
   return (
-    <form
-      className="card border border-base-300 bg-base-100"
+    <Card
+      as="form"
       noValidate
       onSubmit={handleSubmit(async (values) => {
         const tableIds =
@@ -118,28 +125,28 @@ export function OrderForm({
         }
       })}
     >
-      <div className="card-body">
-        <h2 className="card-title">
+      <CardContent>
+        <h2 className="text-lg leading-snug font-semibold">
           {order ? "Datos del pedido" : "Nuevo pedido"}
         </h2>
         {!order && (
           <label className="grid gap-1">
             Tipo
-            <select className="select w-full" {...register("type")}>
+            <NativeSelect className="w-full" {...register("type")}>
               {orderTypes.map((key) => (
                 <option key={key} value={key}>
                   {typeLabels[key]}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
         )}
         {!order && type === "DINE_IN" && (
-          <fieldset className="space-y-1">
-            <legend className="font-semibold">Mesas</legend>
+          <FieldSet className="space-y-1">
+            <FieldLegend className="font-semibold">Mesas</FieldLegend>
             {map.isPending && <p role="status">Cargando mesas…</p>}
             {map.isError && (
-              <p role="alert" className="text-error">
+              <p role="alert" className="text-destructive">
                 No se pudieron cargar las mesas.
               </p>
             )}
@@ -148,20 +155,20 @@ export function OrderForm({
             )}
             <div className="space-y-4">
               {tableAreas.map((area) => (
-                <fieldset
+                <FieldSet
                   key={area.id}
-                  className="rounded-box border border-base-300 p-3"
+                  className="rounded-xl border border-border p-3"
                 >
-                  <legend className="px-2 font-semibold">{area.name}</legend>
+                  <FieldLegend className="px-2 font-semibold">{area.name}</FieldLegend>
                   <div className="grid grid-cols-3 gap-2">
                     {area.tables.map((table) => (
                       <label
                         key={table.id}
-                        className={`flex min-h-14 min-w-0 cursor-pointer items-center gap-2 rounded-box border p-2 ${selected.includes(table.id) ? "border-primary bg-primary/10" : "border-base-300 bg-base-100"}`}
+                        className={`flex min-h-14 min-w-0 cursor-pointer items-center gap-2 rounded-xl border p-2 ${selected.includes(table.id) ? "border-primary bg-accent" : "border-border bg-card"}`}
                       >
                         <input
                           type="checkbox"
-                          className="checkbox checkbox-sm shrink-0"
+                          className="shrink-0"
                           checked={selected.includes(table.id)}
                           onChange={(event) => {
                             setValue(
@@ -179,28 +186,28 @@ export function OrderForm({
                       </label>
                     ))}
                   </div>
-                </fieldset>
+                </FieldSet>
               ))}
             </div>
             {errors.tableIds?.message && (
-              <p role="alert" className="text-error">
+              <p role="alert" className="text-destructive">
                 {errors.tableIds.message}
               </p>
             )}
-          </fieldset>
+          </FieldSet>
         )}
         <label className="grid gap-1">
           Cliente (opcional)
-          <input
-            className="input w-full"
+          <Input
+            className="w-full"
             maxLength={150}
             {...register("customerName")}
           />
         </label>
         <label className="grid gap-1">
           Teléfono (opcional)
-          <input
-            className="input w-full"
+          <Input
+            className="w-full"
             type="tel"
             maxLength={30}
             {...register("customerPhone")}
@@ -208,19 +215,19 @@ export function OrderForm({
         </label>
         <label className="grid gap-1">
           Notas (opcional)
-          <textarea
-            className="textarea w-full"
+          <Textarea
+            className="w-full"
             maxLength={1000}
             {...register("notes")}
           />
         </label>
         {errors.root?.message && (
-          <p role="alert" className="alert alert-error">
+          <Alert role="alert" variant="destructive">
             {errors.root.message}
-          </p>
+          </Alert>
         )}
-        <button
-          className="btn btn-primary min-h-11"
+        <Button
+          type="submit" className="min-h-11"
           disabled={
             isSubmitting || (!order && type === "DINE_IN" && !map.isSuccess)
           }
@@ -230,19 +237,19 @@ export function OrderForm({
             : order
               ? "Guardar datos"
               : "Crear borrador"}
-        </button>
+        </Button>
         {close && (
-          <button
-            className="btn btn-ghost"
+          <Button
+            variant="ghost"
             type="button"
             disabled={isSubmitting}
             onClick={close}
           >
             Cancelar
-          </button>
+          </Button>
         )}
-      </div>
-    </form>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -274,8 +281,8 @@ export function OrderTablesForm({
   });
   const selected = useWatch({ control, name: "tableIds" });
   return (
-    <form
-      className="card border border-base-300 bg-base-100"
+    <Card
+      as="form"
       onSubmit={handleSubmit(async ({ tableIds }) => {
         try {
           await action.mutateAsync((repo) =>
@@ -289,11 +296,11 @@ export function OrderTablesForm({
         }
       })}
     >
-      <div className="card-body">
-        <h2 className="card-title">Mesas del pedido</h2>
+      <CardContent>
+        <h2 className="text-lg leading-snug font-semibold">Mesas del pedido</h2>
         {map.isPending && <p role="status">Cargando mesas…</p>}
         {map.isError && (
-          <p role="alert" className="text-error">
+          <p role="alert" className="text-destructive">
             No se pudieron cargar las mesas.
           </p>
         )}
@@ -306,20 +313,20 @@ export function OrderTablesForm({
             );
             if (!tables.length) return null;
             return (
-              <fieldset
+              <FieldSet
                 key={area.id}
-                className="rounded-box border border-base-300 p-3"
+                className="rounded-xl border border-border p-3"
               >
-                <legend className="px-2 font-semibold">{area.name}</legend>
+                <FieldLegend className="px-2 font-semibold">{area.name}</FieldLegend>
                 <div className="grid grid-cols-3 gap-2">
                   {tables.map((table) => (
                     <label
                       key={table.id}
-                      className={`flex min-h-14 min-w-0 cursor-pointer items-center gap-2 rounded-box border p-2 ${selected.includes(table.id) ? "border-primary bg-primary/10" : "border-base-300 bg-base-100"}`}
+                      className={`flex min-h-14 min-w-0 cursor-pointer items-center gap-2 rounded-xl border p-2 ${selected.includes(table.id) ? "border-primary bg-accent" : "border-border bg-card"}`}
                     >
                       <input
                         type="checkbox"
-                        className="checkbox checkbox-sm shrink-0"
+                        className="shrink-0"
                         checked={selected.includes(table.id)}
                         onChange={(event) => {
                           setValue(
@@ -337,30 +344,30 @@ export function OrderTablesForm({
                     </label>
                   ))}
                 </div>
-              </fieldset>
+              </FieldSet>
             );
           })}
         </div>
         {(errors.tableIds?.message || errors.root?.message) && (
-          <p role="alert" className="alert alert-error">
+          <Alert role="alert" variant="destructive">
             {errors.tableIds?.message || errors.root?.message}
-          </p>
+          </Alert>
         )}
-        <button
-          className="btn btn-primary"
+        <Button
+          type="submit"
           disabled={isSubmitting || !map.isSuccess}
         >
           Guardar mesas
-        </button>
-        <button
-          className="btn btn-ghost"
+        </Button>
+        <Button
+          variant="ghost"
           type="button"
           disabled={isSubmitting}
           onClick={close}
         >
           Cancelar
-        </button>
-      </div>
-    </form>
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

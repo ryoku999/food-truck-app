@@ -1,3 +1,10 @@
+import { Card, CardContent } from "@/presentation/components/ui/card";
+import { Input } from "@/presentation/components/ui/input";
+import { Textarea } from "@/presentation/components/ui/textarea";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Button, buttonVariants } from "@/presentation/components/ui/button";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Badge } from "@/presentation/components/ui/badge";
 import { useConfirm } from "@/presentation/components/use-confirm";
 import type { CashSession } from "@/core/entities/cashier.entity";
 import { manualMovements } from "@/core/entities/cashier.entity";
@@ -49,13 +56,13 @@ function Collections({
 }) {
   const { collections } = session;
   return (
-    <section className="card border border-base-300 bg-base-100">
-      <div className="card-body">
-        <h2 className="card-title">Cobros del turno</h2>
+    <Card as="section">
+      <CardContent>
+        <h2 className="text-lg leading-snug font-semibold">Cobros del turno</h2>
         <dl className="grid gap-3 sm:grid-cols-3">
-          <div>
+          <div className="clay-panel rounded-lg bg-clay-peach p-3">
             <dt>Total cobrado</dt>
-            <dd className="text-xl font-bold">{format(collections.total)}</dd>
+            <dd className="mt-1 text-xl font-semibold tabular-nums">{format(collections.total)}</dd>
           </div>
           <div>
             <dt>En efectivo</dt>
@@ -66,7 +73,7 @@ function Collections({
             <dd className="font-semibold">{format(collections.nonCash)}</dd>
           </div>
         </dl>
-        <ul className="divide-y divide-base-300">
+        <ul className="divide-y divide-border">
           {collections.methods.map((method) => (
             <li
               key={method.id}
@@ -94,8 +101,8 @@ function Collections({
           Anulaciones: {format(collections.cancelled)} · Reembolsos:{" "}
           {format(collections.refunded)}
         </p>
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -121,8 +128,8 @@ function SessionForm({
     defaultValues: { amount: "", notes: "" },
   });
   return (
-    <form
-      className="card border border-base-300 bg-base-100"
+    <Card
+      as="form"
       noValidate
       onSubmit={handleSubmit(async ({ amount, notes }) => {
         if (
@@ -144,56 +151,56 @@ function SessionForm({
         }
       })}
     >
-      <div className="card-body">
-        <h2 className="card-title">
+      <CardContent>
+        <h2 className="text-lg leading-snug font-semibold">
           {session ? "Cerrar turno" : "Abrir turno"}
         </h2>
         <label className="grid gap-1">
           {session ? "Efectivo contado" : "Fondo inicial"}
-          <input
+          <Input
             inputMode="decimal"
-            className="input w-full"
+            className="w-full"
             {...register("amount")}
           />
         </label>
-        {errors.amount && <p className="text-error">{errors.amount.message}</p>}
+        {errors.amount && <p className="text-destructive">{errors.amount.message}</p>}
         <label className="grid gap-1">
           Notas (opcional)
-          <textarea
-            className="textarea w-full"
+          <Textarea
+            className="w-full"
             maxLength={500}
             {...register("notes")}
           />
         </label>
         {action.isError && (
-          <p role="alert" className="alert alert-error">
+          <Alert role="alert" variant="destructive">
             {apiError(
               action.error,
               "No se confirmó la operación. Revisa el estado de la caja.",
             )}
-          </p>
+          </Alert>
         )}
-        <div className="card-actions">
-          <button className="btn btn-primary min-h-11" disabled={isSubmitting}>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button type="submit" className="min-h-11" disabled={isSubmitting}>
             {isSubmitting
               ? "Guardando…"
               : session
                 ? "Cerrar caja"
                 : "Abrir caja"}
-          </button>
+          </Button>
           {cancel && (
-            <button
+            <Button
               type="button"
-              className="btn btn-ghost"
+              variant="ghost"
               disabled={isSubmitting}
               onClick={cancel}
             >
               Volver
-            </button>
+            </Button>
           )}
         </div>
-      </div>
-    </form>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -208,8 +215,8 @@ function MovementForm({ id, close }: { id: string; close: () => void }) {
     defaultValues: { type: "INCOME", amount: "", description: "" },
   });
   return (
-    <form
-      className="card border border-base-300 bg-base-100"
+    <Card
+      as="form"
       noValidate
       onSubmit={handleSubmit(async (values) => {
         try {
@@ -225,62 +232,62 @@ function MovementForm({ id, close }: { id: string; close: () => void }) {
         }
       })}
     >
-      <div className="card-body">
-        <h2 className="card-title">Registrar movimiento</h2>
+      <CardContent>
+        <h2 className="text-lg leading-snug font-semibold">Registrar movimiento</h2>
         <label className="grid gap-1">
           Tipo
-          <select className="select w-full" {...register("type")}>
+          <NativeSelect className="w-full" {...register("type")}>
             {manualMovements.map((type) => (
               <option key={type} value={type}>
                 {movementLabels[type]}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
         <label className="grid gap-1">
           Monto
-          <input
-            className="input w-full"
+          <Input
+            className="w-full"
             inputMode="decimal"
             {...register("amount")}
           />
         </label>
         <label className="grid gap-1">
           Motivo
-          <textarea
-            className="textarea w-full"
+          <Textarea
+            className="w-full"
             maxLength={500}
             {...register("description")}
           />
         </label>
         {(errors.amount || errors.description) && (
-          <p role="alert" className="text-error">
+          <p role="alert" className="text-destructive">
             {errors.amount?.message || errors.description?.message}
           </p>
         )}
         {action.isError && (
-          <p role="alert" className="alert alert-error">
+          <Alert role="alert" variant="destructive">
             {apiError(
               action.error,
               "No se confirmó el movimiento. Revisa el historial antes de repetirlo.",
             )}
-          </p>
+          </Alert>
         )}
-        <div className="card-actions">
-          <button className="btn btn-primary" disabled={isSubmitting}>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button type="submit" disabled={isSubmitting}>
             Registrar
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="btn btn-ghost"
+            variant="ghost"
             disabled={isSubmitting}
             onClick={close}
           >
             Volver
-          </button>
+          </Button>
         </div>
-      </div>
-    </form>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -299,20 +306,23 @@ export default function CashSessionPage() {
   const current = session.data?.status === "OPEN" ? session.data : undefined;
   return (
     <div className="mx-auto max-w-4xl space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-3xl font-bold">Turno de caja</h1>
-        <Link className="btn btn-outline" to="../accounts" relative="path">
+      <header className="clay-hero clay-raised flex flex-wrap items-end justify-between gap-3 rounded-2xl border p-5 @lg:p-7">
+        <div>
+          <h1 className="text-[1.75rem] font-semibold tracking-tight @lg:text-4xl">Turno de caja</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Apertura, movimientos y cierre del turno</p>
+        </div>
+        <Link className={buttonVariants({ variant: "outline" })} to="../accounts" relative="path">
           Ver cuentas
         </Link>
-      </div>
+      </header>
       {registers.isPending && <p role="status">Cargando cajas…</p>}
       {registers.isError && (
-        <div className="alert alert-error" role="alert">
+        <Alert variant="destructive" role="alert">
           {apiError(registers.error, "No se pudieron cargar las cajas.")}
-          <button className="btn" onClick={() => void registers.refetch()}>
+          <Button type="submit" variant="outline" onClick={() => void registers.refetch()}>
             Reintentar
-          </button>
-        </div>
+          </Button>
+        </Alert>
       )}
       {registers.isSuccess && !register && (
         <p>No hay cajas activas. Solicita a Gestión que configure una.</p>
@@ -320,8 +330,8 @@ export default function CashSessionPage() {
       {register && (
         <label className="grid gap-1">
           Caja
-          <select
-            className="select w-full sm:max-w-xs"
+          <NativeSelect
+            className="w-full sm:max-w-xs"
             value={register.id}
             onChange={(event) => {
               setSelected(event.target.value);
@@ -334,22 +344,22 @@ export default function CashSessionPage() {
                 {item.name} · {item.currentSession ? "Abierta" : "Sin turno"}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
       )}
       {receipt?.cashRegisterId === register?.id &&
         receipt?.status === "CLOSED" && (
           <>
-            <section className="card border border-base-300 bg-base-100">
-              <div className="card-body">
-                <h2 className="card-title">Cierre confirmado</h2>
+            <Card as="section">
+              <CardContent>
+                <h2 className="text-lg leading-snug font-semibold">Cierre confirmado</h2>
                 <p>
                   Esperado: {format(receipt.expectedAmount)} · Contado:{" "}
                   {format(receipt.actualAmount)} · Diferencia:{" "}
                   {format(receipt.difference)}
                 </p>
-              </div>
-            </section>
+              </CardContent>
+            </Card>
             <Collections session={receipt} format={format} />
           </>
         )}
@@ -364,21 +374,21 @@ export default function CashSessionPage() {
         <p role="status">Cargando turno…</p>
       )}
       {session.isError && (
-        <div className="alert alert-error" role="alert">
+        <Alert variant="destructive" role="alert">
           {apiError(session.error, "No se pudo cargar el turno.")}
-          <button className="btn" onClick={() => void session.refetch()}>
+          <Button type="submit" variant="outline" onClick={() => void session.refetch()}>
             Reintentar
-          </button>
-        </div>
+          </Button>
+        </Alert>
       )}
       {current && (
         <>
           <Collections session={current} format={format} />
-          <section className="card border border-base-300 bg-base-100">
-            <div className="card-body">
-              <h2 className="card-title">
+          <Card as="section">
+            <CardContent>
+              <h2 className="text-lg leading-snug font-semibold">
                 Efectivo en caja{" "}
-                <span className="badge badge-success">Turno abierto</span>
+                <Badge variant="success">Turno abierto</Badge>
               </h2>
               <dl className="grid grid-cols-2 gap-3">
                 <div>
@@ -406,24 +416,24 @@ export default function CashSessionPage() {
                   </div>
                 ))}
               </dl>
-              <div className="card-actions">
-                <button
-                  className="btn btn-primary"
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <Button
+                  type="submit"
                   disabled={!!mode || session.isError}
                   onClick={() => setMode("movement")}
                 >
                   Nuevo movimiento
-                </button>
-                <button
-                  className="btn btn-outline"
+                </Button>
+                <Button
+                  type="submit" variant="outline"
                   disabled={!!mode || session.isError}
                   onClick={() => setMode("close")}
                 >
                   Preparar cierre
-                </button>
+                </Button>
               </div>
-            </div>
-          </section>
+            </CardContent>
+          </Card>
           {mode === "movement" && (
             <MovementForm
               key={current.id}
@@ -451,7 +461,7 @@ export default function CashSessionPage() {
             <ul className="space-y-2">
               {[...current.movements].reverse().map((item) => (
                 <li
-                  className="flex flex-wrap justify-between gap-2 rounded-box border border-base-300 bg-base-100 p-3"
+                  className="flex flex-wrap justify-between gap-2 rounded-xl border border-border bg-card p-3"
                   key={item.id}
                 >
                   <div>

@@ -1,3 +1,8 @@
+import { Button } from "@/presentation/components/ui/button";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Input } from "@/presentation/components/ui/input";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Card } from "@/presentation/components/ui/card";
 import {
   printStatuses,
   type PrintStatus,
@@ -63,14 +68,14 @@ export default function PrintJobsPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-3xl font-bold">Cola de impresión</h1>
-        <button
-          className="btn btn-outline"
+        <h1 className="text-[1.75rem] font-semibold tracking-tight sm:text-4xl">Cola de impresión</h1>
+        <Button
+          type="submit" variant="outline"
           disabled={jobs.isFetching}
           onClick={() => void jobs.refetch()}
         >
           Actualizar
-        </button>
+        </Button>
       </div>
       <form
         key={`${ticketNumber ?? ""}|${orderNumber ?? ""}`}
@@ -97,19 +102,17 @@ export default function PrintJobsPage() {
       >
         <label className="grid gap-1">
           Buscar por
-          <select
-            className="select"
+          <NativeSelect
             name="by"
             defaultValue={orderNumber ? "orderNumber" : "ticketNumber"}
           >
             <option value="ticketNumber">N.º de ticket</option>
             <option value="orderNumber">N.º de pedido</option>
-          </select>
+          </NativeSelect>
         </label>
         <label className="grid gap-1">
           Número
-          <input
-            className="input"
+          <Input
             name="number"
             inputMode="numeric"
             placeholder="Ej. 000123"
@@ -119,22 +122,21 @@ export default function PrintJobsPage() {
             onChange={(event) => event.currentTarget.setCustomValidity("")}
           />
         </label>
-        <button className="btn btn-primary">Buscar</button>
+        <Button type="submit">Buscar</Button>
         {(ticketNumber || orderNumber) && (
-          <button
+          <Button
             type="button"
-            className="btn btn-outline"
+            variant="outline"
             onClick={() => searchByNumber()}
           >
             Limpiar búsqueda
-          </button>
+          </Button>
         )}
       </form>
       <div className="flex flex-wrap items-end gap-3">
         <label className="grid gap-1">
           Estado
-          <select
-            className="select"
+          <NativeSelect
             value={status ?? ""}
             onChange={(event) => update("status", event.target.value)}
           >
@@ -144,19 +146,19 @@ export default function PrintJobsPage() {
                 {printStatusLabels[value]}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </label>
         {orderId && (
-          <button className="btn btn-outline" onClick={() => update("orderId")}>
+          <Button type="submit" variant="outline" onClick={() => update("orderId")}>
             Quitar filtro del pedido
-          </button>
+          </Button>
         )}
       </div>
       {jobs.isPending && <p role="status">Cargando trabajos…</p>}
       {jobs.isError && (
-        <p role="alert" className="alert alert-error">
+        <Alert role="alert" variant="destructive">
           {apiError(jobs.error, "No se pudo actualizar la cola.")}
-        </p>
+        </Alert>
       )}
       {jobs.data?.items.length === 0 && (
         <p>No hay trabajos para este filtro.</p>
@@ -165,16 +167,16 @@ export default function PrintJobsPage() {
         {jobs.data?.items.map((job) => {
           const number = printDocumentNumber(job.payload);
           return (
-            <li
+            <Card
               key={job.id}
-              className="card border border-base-300 bg-base-100"
+              as="li"
             >
               <Link
                 to={{ pathname: job.id, search: params.toString() }}
-                className="card-body"
+                className="flex flex-col gap-4 p-4 sm:p-5"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="card-title">{jobLabels[job.type]}</h2>
+                  <h2 className="text-lg leading-snug font-semibold">{jobLabels[job.type]}</h2>
                   <PrintJobBadge job={job} />
                 </div>
                 <p>
@@ -190,7 +192,7 @@ export default function PrintJobsPage() {
                   <p className="text-sm">Impresora {job.printer.name}</p>
                 )}
               </Link>
-            </li>
+            </Card>
           );
         })}
       </ul>
@@ -199,23 +201,23 @@ export default function PrintJobsPage() {
           className="flex flex-wrap items-center gap-2"
           aria-label="Paginación de trabajos"
         >
-          <button
-            className="btn btn-outline"
+          <Button
+            type="submit" variant="outline"
             disabled={page <= 1}
             onClick={() => update("page", String(page - 1))}
           >
             Anterior
-          </button>
+          </Button>
           <span>
             Pág. {page} · {jobs.data?.total ?? "—"} trabajos
           </span>
-          <button
-            className="btn btn-outline"
+          <Button
+            type="submit" variant="outline"
             disabled={page >= 5001 || page * limit >= (jobs.data?.total ?? 0)}
             onClick={() => update("page", String(page + 1))}
           >
             Siguiente
-          </button>
+          </Button>
         </nav>
       )}
     </div>

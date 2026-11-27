@@ -1,3 +1,8 @@
+import { Card, CardContent } from "@/presentation/components/ui/card";
+import { Input } from "@/presentation/components/ui/input";
+import { NativeSelect } from "@/presentation/components/ui/native-select";
+import { Alert } from "@/presentation/components/ui/alert";
+import { Button } from "@/presentation/components/ui/button";
 import {
   paymentCodes,
   type CashRegister,
@@ -44,8 +49,8 @@ function SettingsForm({
     },
   });
   return (
-    <form
-      className="card border border-base-300 bg-base-100"
+    <Card
+      as="form"
       noValidate
       onSubmit={handleSubmit(async (input) => {
         try {
@@ -60,31 +65,31 @@ function SettingsForm({
         }
       })}
     >
-      <div className="card-body">
-        <h2 className="card-title">
+      <CardContent>
+        <h2 className="text-lg leading-snug font-semibold">
           {editor.item ? "Editar" : "Crear"}{" "}
           {editor.kind === "method" ? "método de pago" : "caja"}
         </h2>
         <label className="grid gap-1">
           Nombre
-          <input className="input w-full" {...register("name")} />
+          <Input className="w-full" {...register("name")} />
         </label>
         {editor.kind === "method" && (
           <>
             <label className="grid gap-1">
               Código
-              <select className="select w-full" {...register("code")}>
+              <NativeSelect className="w-full" {...register("code")}>
                 {paymentCodes.map((code) => (
                   <option key={code} value={code}>
                     {code}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
             <label className="grid gap-1">
               Orden
-              <input
-                className="input w-full"
+              <Input
+                className="w-full"
                 type="number"
                 min={0}
                 {...register("sortOrder", { valueAsNumber: true })}
@@ -93,30 +98,30 @@ function SettingsForm({
           </>
         )}
         {(errors.name || errors.sortOrder) && (
-          <p role="alert" className="text-error">
+          <p role="alert" className="text-destructive">
             {errors.name?.message || errors.sortOrder?.message}
           </p>
         )}
         {action.isError && (
-          <p role="alert" className="alert alert-error">
+          <Alert role="alert" variant="destructive">
             {apiError(action.error, "No se pudo guardar.")}
-          </p>
+          </Alert>
         )}
-        <div className="card-actions">
-          <button className="btn btn-primary" disabled={isSubmitting}>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button type="submit" disabled={isSubmitting}>
             Guardar
-          </button>
-          <button
-            className="btn btn-ghost"
+          </Button>
+          <Button
+            variant="ghost"
             type="button"
             disabled={isSubmitting}
             onClick={close}
           >
             Cancelar
-          </button>
+          </Button>
         </div>
-      </div>
-    </form>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -127,7 +132,7 @@ export default function CashSettingsPage() {
   const action = useCashierAction();
   return (
     <div className="space-y-4">
-      <h1 className="text-3xl font-bold">Configuración de caja</h1>
+      <h1 className="text-[1.75rem] font-semibold tracking-tight sm:text-4xl">Configuración de caja</h1>
       {editor && (
         <SettingsForm
           key={editor.item?.id ?? editor.kind}
@@ -136,36 +141,36 @@ export default function CashSettingsPage() {
         />
       )}
       {action.isError && (
-        <p role="alert" className="alert alert-error">
+        <Alert role="alert" variant="destructive">
           {apiError(action.error, "No se pudo cambiar el estado.")}
-        </p>
+        </Alert>
       )}
       <div className="grid items-start gap-4 xl:grid-cols-2">
-        <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4">
+        <section className="space-y-3 rounded-xl border border-border bg-card p-4">
           <div className="flex flex-wrap justify-between gap-2">
             <h2 className="text-xl font-semibold">Métodos de pago</h2>
-            <button
-              className="btn btn-primary"
+            <Button
+              type="submit"
               disabled={!!editor || action.isPending}
               onClick={() => setEditor({ kind: "method" })}
             >
               Nuevo método
-            </button>
+            </Button>
           </div>
           {methods.isPending && <p role="status">Cargando métodos…</p>}
           {methods.isError && (
-            <div className="alert alert-error" role="alert">
+            <Alert variant="destructive" role="alert">
               No se pudieron cargar los métodos.
-              <button className="btn" onClick={() => void methods.refetch()}>
+              <Button type="submit" variant="outline" onClick={() => void methods.refetch()}>
                 Reintentar
-              </button>
-            </div>
+              </Button>
+            </Alert>
           )}
           {methods.data?.length === 0 && <p>Sin métodos configurados.</p>}
           {methods.data?.map((item) => (
             <div
               key={item.id}
-              className="flex flex-wrap items-center justify-between gap-2 border-t border-base-300 pt-2"
+              className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2"
             >
               <div>
                 <p className="font-semibold">{item.name}</p>
@@ -174,15 +179,15 @@ export default function CashSettingsPage() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <button
-                  className="btn btn-sm btn-outline"
+                <Button
+                  type="submit" variant="outline" size="sm"
                   disabled={!!editor || action.isPending}
                   onClick={() => setEditor({ kind: "method", item })}
                 >
                   Editar
-                </button>
-                <button
-                  className="btn btn-sm btn-outline"
+                </Button>
+                <Button
+                  type="submit" variant="outline" size="sm"
                   disabled={!!editor || action.isPending}
                   onClick={() =>
                     action.mutate((repo) =>
@@ -191,36 +196,36 @@ export default function CashSettingsPage() {
                   }
                 >
                   {item.active ? "Desactivar" : "Activar"}
-                </button>
+                </Button>
               </div>
             </div>
           ))}
         </section>
-        <section className="space-y-3 rounded-box border border-base-300 bg-base-100 p-4">
+        <section className="space-y-3 rounded-xl border border-border bg-card p-4">
           <div className="flex flex-wrap justify-between gap-2">
             <h2 className="text-xl font-semibold">Cajas</h2>
-            <button
-              className="btn btn-primary"
+            <Button
+              type="submit"
               disabled={!!editor || action.isPending}
               onClick={() => setEditor({ kind: "register" })}
             >
               Nueva caja
-            </button>
+            </Button>
           </div>
           {registers.isPending && <p role="status">Cargando cajas…</p>}
           {registers.isError && (
-            <div className="alert alert-error" role="alert">
+            <Alert variant="destructive" role="alert">
               No se pudieron cargar las cajas.
-              <button className="btn" onClick={() => void registers.refetch()}>
+              <Button type="submit" variant="outline" onClick={() => void registers.refetch()}>
                 Reintentar
-              </button>
-            </div>
+              </Button>
+            </Alert>
           )}
           {registers.data?.length === 0 && <p>Sin cajas configuradas.</p>}
           {registers.data?.map((item) => (
             <div
               key={item.id}
-              className="flex flex-wrap items-center justify-between gap-2 border-t border-base-300 pt-2"
+              className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2"
             >
               <div>
                 <p className="font-semibold">{item.name}</p>
@@ -233,15 +238,15 @@ export default function CashSettingsPage() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <button
-                  className="btn btn-sm btn-outline"
+                <Button
+                  type="submit" variant="outline" size="sm"
                   disabled={!!editor || action.isPending}
                   onClick={() => setEditor({ kind: "register", item })}
                 >
                   Editar
-                </button>
-                <button
-                  className="btn btn-sm btn-outline"
+                </Button>
+                <Button
+                  type="submit" variant="outline" size="sm"
                   disabled={
                     !!editor || action.isPending || !!item.currentSession
                   }
@@ -252,7 +257,7 @@ export default function CashSettingsPage() {
                   }
                 >
                   {item.active ? "Desactivar" : "Activar"}
-                </button>
+                </Button>
               </div>
             </div>
           ))}
