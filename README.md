@@ -134,3 +134,32 @@ El cliente queda en `http://localhost:7000`. Nginx resuelve las rutas de React R
 en caché los archivos versionados de `/assets/`. El documento HTML se revalida
 para recibir los cambios de cada despliegue. La política de contenido admite
 las conexiones HTTP(S)/WS(S), imágenes firmadas y el worker local de compresión.
+
+## Aplicación instalable
+
+La compilación genera `dist/manifest.webmanifest` y `dist/sw.js`. El manifiesto
+pide modo `standalone` para abrir Food Truck desde el icono de inicio sin la
+barra del navegador. Para producción usa un dominio HTTPS estable. Cada
+origen tiene su propia instalación, almacenamiento y service worker.
+
+- **Vercel.** Importa como proyecto Vite. `vercel.json` usa Bun, publica `dist`
+  y reserva las rutas del manifiesto, el worker y los iconos para sus archivos
+  reales. Define las variables `VITE_*` en el entorno correspondiente y
+  recompila cada vez que cambien.
+- **Dokploy.** Usa el servicio de Docker Compose descrito arriba. Nginx sirve
+  los archivos PWA directamente en el puerto interno 7000. Desde el dominio
+  HTTPS, comprueba que `/manifest.webmanifest` devuelve JSON y que `/sw.js`
+  devuelve JavaScript. Ambos deben revalidarse con `Cache-Control: no-cache`.
+
+En Android, abre el dominio en Chrome y elige **Instalar aplicación** desde
+el menú del navegador o **Instalar Food Truck** cuando la interfaz lo ofrezca.
+Si Brave solo crea un acceso directo, prueba desde Chrome. En iPhone o iPad,
+usa Safari, **Compartir**, **Añadir a pantalla de inicio** y **Abrir como app
+web** cuando esté disponible. Abre la app desde el icono para verificar el modo
+instalado.
+
+El worker precachea archivos estáticos y una pantalla de conexión. Los
+pedidos, cobros, sesiones, tickets e impresión requieren red. Si una
+mutación falla por falta de red, se informa del error y hace falta
+reintentarlo de forma explícita. La actualización se ofrece cuando hay una
+nueva versión y puede aplicarse al terminar las operaciones activas.

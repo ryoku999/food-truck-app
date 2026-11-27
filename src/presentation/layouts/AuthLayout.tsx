@@ -1,8 +1,13 @@
 import { Outlet } from "react-router-dom";
+import { Download } from "lucide-react";
 import { ModeToggle } from "../components/mode-toggle";
+import { usePwaInstall } from "../components/pwa-install-context";
+import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 
 export default function AuthLayout() {
+  const install = usePwaInstall();
+
   return (
     <main className="clay-stage flex min-h-dvh flex-col">
       <header className="border-b bg-background">
@@ -25,6 +30,12 @@ export default function AuthLayout() {
         <Card as="section" aria-labelledby="login-title" className="clay-raised w-full justify-center rounded-2xl">
           <CardContent className="gap-6 p-6 sm:p-8">
             <Outlet />
+            {install && (
+              <Button type="button" variant="outline" onClick={install}>
+                <Download aria-hidden="true" />
+                Instalar Food Truck
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -1,7 +1,8 @@
 import type { LoginRes } from "@/core/entities/auth.entity";
 import { useLogout } from "@/infrastructure/hooks/use-auth";
-import { ChevronDown, LogOut, UserRound } from "lucide-react";
+import { ChevronDown, Download, LogOut, UserRound } from "lucide-react";
 import { useRef } from "react";
+import { usePwaInstall } from "./pwa-install-context";
 import { Alert } from "./ui/alert";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Button } from "./ui/button";
@@ -19,6 +20,7 @@ import { useConfirm } from "./use-confirm";
 export function AccountMenu({ user }: { user: LoginRes | null }) {
   const logout = useLogout();
   const confirmAction = useConfirm();
+  const install = usePwaInstall();
   const menuButton = useRef<HTMLButtonElement>(null);
   const logoutRequested = useRef(false);
   const firstName = user?.firstName?.trim();
@@ -70,6 +72,12 @@ export function AccountMenu({ user }: { user: LoginRes | null }) {
               {fullName || name}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            {install && (
+              <DropdownMenuItem className="min-h-11 gap-2 px-2.5" onClick={install}>
+                <Download aria-hidden="true" />
+                Instalar Food Truck
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem
               variant="destructive"
               className="min-h-11 gap-2 px-2.5"
